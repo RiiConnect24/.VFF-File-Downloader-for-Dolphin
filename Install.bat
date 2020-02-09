@@ -6,7 +6,7 @@ echo 	Starting up...
 echo	The program is starting...
 :: ===========================================================================
 :: .VFF File Downloader for Dolphin
-set version=1.0.0
+set version=1.0.1
 :: AUTHORS: KcrPL
 :: ***************************************************************************
 :: Copyright (c) 2020 KcrPL, RiiConnect24 and it's (Lead) Developers
@@ -27,8 +27,8 @@ set /a incorrect_region=0
 :: Window Title
 title .VFF File Downloader for Dolphin v%version% Created by @KcrPL
 
-set last_build=2020/02/08
-set at=23:34
+set last_build=2020/02/09
+set at=04:50
 :: ### Auto Update ###	
 :: 1=Enable 0=Disable
 :: Update_Activate - If disabled, patcher will not even check for updates, default=1
@@ -109,7 +109,7 @@ echo Settings
 echo.
 echo R. Return to main menu.
 echo.
-echo 1. Delete config file (will delete from startup as well)
+echo 1. Delete config file and delete VFF Downloader from startup.
 echo 2. Delete VFF Downloader for Dolphin from startup
 echo 3. If VFF Downloader is running, shut it down.
 set /p s=Choose: 
@@ -479,13 +479,32 @@ cls
 echo %header%
 echo -----------------------------------------------------------------------------------------------------------------------------
 echo.
-echo %documents_folder%
 echo Hmm... I couldn't find your Dolphin user configuration folder.
 echo Try running Dolphin and "Perform Online System Update" and then start News/Forecast Channel.
 echo.
-echo Press any key to go back.
-pause>NUL
-goto 1
+echo If it still won't work, choose "Set manually"
+echo.
+echo 1. Try again
+echo 2. Set manually
+echo 3. Exit
+set /p s=Choose:
+if %s%==1 goto 1_detect
+if %s%==2 goto 1_detect_set
+if %s%==3 goto 1 
+goto 1_detect_0
+:1_detect_set
+cls
+echo %header%
+echo -----------------------------------------------------------------------------------------------------------------------------
+echo.
+echo Could not find folder with Wii NAND used for Dolphin.
+echo.
+echo Default location: C:\Users\%username%\Documents\Dolphin Emulator\Wii\title\00010002
+echo Make sure that the format of the location (folder structure) will remain the same, otherwise things will break.
+echo.
+set /p dolphin_location=Your location: 
+echo %dolphin_location%> "%config%\path_to_install.txt"
+goto 1_detect_1
 :1_detect_1
 cls
 echo %header%

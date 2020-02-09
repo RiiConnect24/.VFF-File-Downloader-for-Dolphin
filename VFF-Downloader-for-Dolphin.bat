@@ -4,7 +4,7 @@ setlocal enableDelayedExpansion
 cd /d "%~dp0"
 :: ===========================================================================
 :: .VFF File Downloader for Dolphin - main script
-set version=1.0.0
+set version=1.0.1
 :: AUTHORS: KcrPL
 :: ***************************************************************************
 :: Copyright (c) 2020 KcrPL, RiiConnect24 and it's (Lead) Developers
@@ -146,6 +146,7 @@ del /q "%dolphin_installation%\wc24dl_forecast.vff"
 
 if %first_start%==1 echo x=MsgBox("First configuration is done. Please run Dolphin and check for yourself :)",64,"RiiConnect24 .VFF Downloader for Dolphin")>"%appdata%\warning.vbs"
 if %first_start%==1 start "" "%appdata%\warning.vbs"
+if %first_start%==1 set /a first_start=0
 
 set last_hour_download=%time:~0,2%
 set /a already_checked_this_hour=1
@@ -160,5 +161,14 @@ goto count_time
 if not "%last_hour_download%"=="%time:~0,2%" set /a already_checked_this_hour=0
 if %already_checked_this_hour%==0 if /i "%time:~3,2%" GEQ "10" goto download_files
 timeout 600 /nobreak >NUL
+
+echo --- Checking for update ---
+::Check for update
+if %alternative_curl%==0 call curl -s -S --insecure "%FilesHostedOn%/UPDATE/version_vff_downloader.txt" --output "%TempStorage%\version.txt"
+if %alternative_curl%==1 call %alternative_curl_path% -s -S --insecure "%FilesHostedOn%/UPDATE/version_vff_downloader.txt" --output "%TempStorage%\version.txt"
+if exist "%TempStorage%\version.txt" set /p updateversion=<"%TempStorage%\version.txt"
+if not %updateversion%==%version% goto run_update
+echo Done.
+
 goto count_time
 
