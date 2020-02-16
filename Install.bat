@@ -1,12 +1,11 @@
 @echo off
-setlocal enableextensions
-setlocal enableDelayedExpansion
+setlocal EnableExtensions EnableDelayedExpansion
 cd /d "%~dp0"
 echo 	Starting up...
 echo	The program is starting...
 :: ===========================================================================
 :: .VFF File Downloader for Dolphin
-set version=1.0.1
+set version=1.0.4
 :: AUTHORS: KcrPL
 :: ***************************************************************************
 :: Copyright (c) 2020 KcrPL, RiiConnect24 and it's (Lead) Developers
@@ -22,13 +21,15 @@ set s=NUL
 :: Variables
 set /a detected=0
 set /a incorrect_region=0
+set /a temp=0
+set user_name=%userprofile:~9%
 
 
 :: Window Title
 title .VFF File Downloader for Dolphin v%version% Created by @KcrPL
 
-set last_build=2020/02/09
-set at=04:50
+set last_build=2020/02/15
+set at=17:10
 :: ### Auto Update ###	
 :: 1=Enable 0=Disable
 :: Update_Activate - If disabled, patcher will not even check for updates, default=1
@@ -45,11 +46,13 @@ set config=%appdata%\VFF-Downloader-for-Dolphin\config
 
 set header=.VFF File Downloader - (C) KcrPL v%version% (Compiled on %last_build% at %at%)
 
-if not exist "%MainFolder%" md "%MainFolder%"
+::There's no need to check for the existance of MainFolder here since md creates folders recursively
+::(e. g. if TempStorage doesn't exist, it checks for MainStorage and creates it if it doesn't exist, then checks for the "internet" folder in there and creates it if it doesn't exist
+::and so on and so forth)
 if not exist "%TempStorage%" md "%TempStorage%"
 if not exist "%config%" md "%config%"
 :: Load background color from file if it exists
-for /f "usebackq" %%a in ("%appdata%\RiiConnect24Patcher\internet\temp\background_color.txt") do color %%a
+if exist "%appdata%\RiiConnect24Patcher\internet\temp\background_color.txt" for /f "usebackq" %%a in ("%appdata%\RiiConnect24Patcher\internet\temp\background_color.txt") do color %%a
 goto begin_main
 :begin_main
 cls
@@ -65,7 +68,7 @@ echo             :mdmmN+`mNMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM.
 echo             /mmmmN:-mNMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMN   1. Start
 echo             ommmmN.:mMMMMMMMMMMMMmNMMMMMMMMMMMMMMMMMd   2. Settings
 if exist "%MainFolder%/VFF-Downloader-for-Dolphin.exe" echo             smmmmm`+mMMMMMMMMMNhMNNMNNMMMMMMMMMMMMMMy   3. Run the VFF Downloader once.   
-if exist "C:\Users\%username%\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup\VFF-Downloader-for-Dolphin.exe" echo             smmmmm`+mMMMMMMMMMNhMNNMNNMMMMMMMMMMMMMMy   4. Manage startup VFF Downloader
+if exist "C:\Users\%user_name%\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup\VFF-Downloader-for-Dolphin.exe" echo             smmmmm`+mMMMMMMMMMNhMNNMNNMMMMMMMMMMMMMMy   4. Manage startup VFF Downloader
 echo             smmmmm`+mMMMMMMMMMNhMNNMNNMMMMMMMMMMMMMMy   
 echo             hmmmmh omMMMMMMMMMmhNMMMmNNNNMMMMMMMMMMM+
 echo             hmmmmh omMMMMMMMMMmhNMMMmNNNNMMMMMMMMMMM+
@@ -110,36 +113,46 @@ echo.
 echo R. Return to main menu.
 echo.
 echo 1. Delete config file and delete VFF Downloader from startup.
-echo 2. Delete VFF Downloader for Dolphin from startup
+echo 2. Delete VFF Downloader from startup
 echo 3. If VFF Downloader is running, shut it down.
 set /p s=Choose: 
-if %s%==r goto begin_main
-if %s%==R goto begin_main
-if %s%==1 goto settings_del_config
-if %s%==2 goto settings_del_vff_downloader
-if %s%==3 goto settings_taskkill
+if /i %s%==r goto begin_main
+if %s%==1 call :settings_del_config
+if %s%==2 call :settings_del_vff_downloader
+if %s%==3 call :settings_taskkill
+
+if %temp%==1 goto script_start
+
+goto settings
 
 :settings_del_config
+::Stop the downloader
+taskkill /im VFF-Downloader-for-Dolphin.exe /f
+::Delete it's direcory
 rmdir /s /q "%appdata%\VFF-Downloader-for-Dolphin"
-taskkill /im VFF-Downloader-for-Dolphin.exe /f
- 
-del /q "C:\Users\%username%\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup\VFF-Downloader-for-Dolphin.exe"
-echo Done^^!
-pause
-goto settings
+::And delete it out of the autostart dir
+del /q "%appdata%\Microsoft\Windows\Start Menu\Programs\Startup\VFF-Downloader-for-Dolphin.exe"
+
+set /a temp=1
+
+goto settings_end
+
 :settings_del_vff_downloader
+::Stop the downloader
 taskkill /im VFF-Downloader-for-Dolphin.exe /f
-del /q "C:\Users\%username%\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup\VFF-Downloader-for-Dolphin.exe"
+::And delete it out of the autostart dir
+del /q "%appdata%\Microsoft\Windows\Start Menu\Programs\Startup\VFF-Downloader-for-Dolphin.exe"
+goto settings_end
 
-echo Done^^!
-pause
-goto settings
 :settings_taskkill
+::Stop the downloader
 taskkill /im VFF-Downloader-for-Dolphin.exe /f
+goto settings_end
+
+:settings_end
 echo Done^^!
 pause
-goto settings
-
+exit /b 0
 
 :begin_main_download_curl
 cls
@@ -178,11 +191,13 @@ echo           `..-:/+ooss+-`          +mmhdy`           -/shmNNNNNdy+:`
 echo                   `.              yddyo++:    `-/oymNNNNNdy+:`
 echo                                   -odhhhhyddmmmmmNNmhs/:`
 echo                                     :syhdyyyyso+/-`
+::Try to download curl from our servers
 call powershell -command (new-object System.Net.WebClient).DownloadFile('"%FilesHostedOn%/curl.exe"', '"curl.exe"')
-set /a temperrorlev=%errorlevel%
-if not %temperrorlev%==0 goto begin_main_download_curl_error
+::If it downloaded successfully, continue on
+if %errorlevel%==0 goto begin_main1
+::If it didn't, display error message
+goto begin_main_download_curl_error
 
-goto begin_main1
 :begin_main_download_curl_error
 cls
 echo %header%                                                                
@@ -222,8 +237,9 @@ start %FilesHostedOn%/curl.exe
 goto begin_main
 
 :begin_main1
-:: For whatever reason, it returns 2
+::Curl returns 2 if it's called without arguments (CURLE_FAILED_INIT)
 curl
+::So if the errorlevel isn't 2 now, we know that curl doesn't exist
 if not %errorlevel%==2 goto begin_main_download_curl
 
 cls
@@ -263,44 +279,49 @@ echo                   `.              yddyo++:    `-/oymNNNNNdy+:`
 echo                                   -odhhhhyddmmmmmNNmhs/:`
 echo                                     :syhdyyyyso+/-`
 
-:: Update script.
+::If updating is disabled, skip the whole update check
+if %Update_Activate%==0 goto 1
+
+::Define the updateVersion (so not that much error checking is needed)
 set updateversion=0.0.0
-:: Delete version.txt and whatsnew.txt
+::Delete possibly outdated version.txt, whatsnew.txt and announcement.txt
 if %offlinestorage%==0 if exist "%TempStorage%\version.txt" del "%TempStorage%\version.txt" /q
 if %offlinestorage%==0 if exist "%TempStorage%\whatsnew.txt" del "%TempStorage%\whatsnew.txt" /q
+if exist "%TempStorage%\annoucement.txt" del /q "%TempStorage%\annoucement.txt"
 
-if not exist "%TempStorage%" md "%TempStorage%"
 :: Commands to download files from server.
+::If the downloader isn't supposed to get files from local storage (Offlinestorage=0, debug feature), download the newest version, changelog and announcement
+if %offlinestorage%==0 (
+call curl -s -S --insecure "%FilesHostedOn%/UPDATE/whatsnew.txt" --output "%TempStorage%\whatsnew.txt"
+call curl -s -S --insecure "%FilesHostedOn%/UPDATE/version.txt" --output "%TempStorage%\version.txt"
+call curl -s -S --insecure "%FilesHostedOn%/UPDATE/annoucement.txt" --output "%TempStorage%\annoucement.txt"
+)
 
-if %Update_Activate%==1 if %offlinestorage%==0 call curl -s -S --insecure "%FilesHostedOn%/UPDATE/whatsnew.txt" --output "%TempStorage%\whatsnew.txt"
-if %Update_Activate%==1 if %offlinestorage%==0 call curl -s -S --insecure "%FilesHostedOn%/UPDATE/version.txt" --output "%TempStorage%\version.txt"
-	set /a temperrorlev=%errorlevel%
-	
-set /a updateserver=1
-	::Bind exit codes to errors here
-	if "%temperrorlev%"=="6" goto no_internet_connection
-	if not %temperrorlev%==0 set /a updateserver=0
+::Bind exit codes to errors here
+::If curl got a "CURLE_COULDNT_RESOLVE_HOST" error, 99% of the time the user doesn't have an active internet connection
+if "%errorlevel%"=="6" goto no_internet_connection
+::If any other error happened while downloading, echo that (TODO: Needs to be improved, only temporary. Probably (hopefully) will never run though)
+if not "%errorlevel%"=="0" echo Issue while downloading version.txt, check internet connection and retry
 
+::In case a random ` appeared at the end of the file name, rename the file to the proper name
 if exist "%TempStorage%\version.txt`" ren "%TempStorage%\version.txt`" "version.txt"
 if exist "%TempStorage%\whatsnew.txt`" ren "%TempStorage%\whatsnew.txt`" "whatsnew.txt"
-:: Copy the content of version.txt to variable.
-if exist "%TempStorage%\version.txt" set /p updateversion=<"%TempStorage%\version.txt"
-if not exist "%TempStorage%\version.txt" set /a updateavailable=0
-if %Update_Activate%==1 if exist "%TempStorage%\version.txt" set /a updateavailable=1
-:: If version.txt doesn't match the version variable stored in this batch file, it means that update is available.
-if %updateversion%==%version% set /a updateavailable=0
 
-if exist "%TempStorage%\annoucement.txt" del /q "%TempStorage%\annoucement.txt"
-curl -s -S --insecure "%FilesHostedOn%/UPDATE/annoucement.txt" --output %TempStorage%\annoucement.txt"
+::Read out version.txt and store it in var updateVersion
+if exist "%TempStorage%\version.txt" for /f "usebackq" %%a in ("%TempStorage%\version.txt") do set updateversion=%%a
+::If the update version is equal to the current version
+if "%updateversion%"=="%version%" (
+::No update is needed, so set updateavailable to 0
+set updateavailable=0
+) else set updateavailable=1
+::So if the two versions don't match, set updateavailable to 1 (For some reason I have to put this comment down here and not in the (), otherwise cmd just crashes)
 
-if %Update_Activate%==1 if %updateavailable%==1 set /a updateserver=2
-if %Update_Activate%==1 if %updateavailable%==1 goto update_notice
+::If there is an update available, notify the user
+if %updateavailable%==1 goto update_notice
 
+::And if there is no update, just continue on
 goto 1
 :update_notice
-if exist "%MainFolder%\failsafe.txt" del /q "%MainFolder%\failsafe.txt"
-if %updateversion%==0.0.0 goto error_update_not_available
-set /a update=1
 cls
 echo %header%
 echo.                                                                       
@@ -316,8 +337,8 @@ echo             ommmmN.:mMMMMMMMMMMMMmNMMMMMMMMMMMMMMMMMd
 echo             smmmmm`+mMMMMMMMMMNhMNNMNNMMMMMMMMMMMMMMy                 
 echo             hmmmmh omMMMMMMMMMmhNMMMmNNNNMMMMMMMMMMM+                 
 echo ------------------------------------------------------------------------------------------------------------------------------
-echo    /---\   An Update is available.              
-echo   /     \  An Update for this program is available. We suggest updating the VFF Downloader to the latest version.
+echo    /---\   An update is available.              
+echo   /     \  An update for this program is available. We suggest updating the VFF Downloader to the latest version.
 echo  /   ^^!   \ 
 echo  ---------  Current version: %version%
 echo             New version: %updateversion%
@@ -339,8 +360,9 @@ echo                                     :syhdyyyyso+/-`
 set /p s=
 if %s%==1 goto update_files
 if %s%==2 goto 1
-if %s%==3 goto whatsnew
+if %s%==3 call :whatsnew
 goto update_notice
+
 :update_files
 cls
 echo %header%
@@ -378,9 +400,11 @@ echo                   `.              yddyo++:    `-/oymNNNNNdy+:`
 echo                                   -odhhhhyddmmmmmNNmhs/:`             
 echo                                     :syhdyyyyso+/-`
 :update_1
+::Download the update helper
 curl -s -S --insecure "https://KcrPL.github.io/Patchers_Auto_Update/RiiConnect24Patcher/UPDATE/update_assistant.bat" --output "update_assistant.bat"
-	set temperrorlev=%errorlevel%
-	if not %temperrorlev%==0 goto error_updating
+::If there was an error downloading, notify user
+if not %errorlevel%==0 goto error_updating
+::So if there wasn't an error, start it with a flag so it knows what to update
 start update_assistant.bat -VFF_Downloader_Installer
 exit
 :error_updating
@@ -421,34 +445,31 @@ echo                                   -odhhhhyddmmmmmNNmhs/:`
 echo                                     :syhdyyyyso+/-`
 pause>NUL
 goto begin_main
+
 :whatsnew
 cls
-if not exist %TempStorage%\whatsnew.txt goto whatsnew_notexist
 echo %header%
 echo ------------------------------------------------------------------------------------------------------------------------------
 echo.
+::If the whatsnew.txt file exists
+if exist "%TempStorage%\whatsnew.txt" (
 echo What's new in update %updateversion%?
 echo.
+::Type it out
 type "%TempStorage%\whatsnew.txt"
-pause>NUL
-goto update_notice
-:whatsnew_notexist
-cls
-echo %header%
-echo -----------------------------------------------------------------------------------------------------------------------------
+) else echo Error. What's new file is not available.
+::Else, (if it doesn't exist) display error message
 echo.
-echo Error. What's new file is not available.
-echo.
-echo Press any button to go back.
 pause>NUL
-goto update_notice
+exit /b 0
+
 :1
 cls
 echo %header%
 echo -----------------------------------------------------------------------------------------------------------------------------
 echo.
 echo Welcome to the installation process of RiiConnect24 VFF Downloader for Dolphin!
-echo This program will allow you to use Forecast/News Channel on your Dolphin without the NEWS00006 error.
+echo This program will allow you to use Forecast/News Channel on your Dolphin Emulator without the NEWS00006 error.
 echo.
 echo First, we need to detect your Dolphin user files.
 echo.
@@ -463,15 +484,14 @@ set /a detected=0
 
 FOR /F "tokens=2* skip=2" %%a in ('reg query "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" /v "Personal"') do set Documents_Folder=%%b
 
-set userprofile=
-set /a fix_detect=0
-echo %Documents_Folder% | findstr "%USERPROFILE% && set /a fix_detect=1
+set fix_detect=0
+echo %Documents_Folder% | findstr "%%USERPROFILE%% && set /a fix_detect=1
 
-if %fix_detect%==1 if exist "%Documents_Folder%\Dolphin Emulator\Wii\title\00010002" set /a detected=1
-if %fix_detect%==0 if exist "C:\Users\%username%\Documents\Dolphin Emulator\Wii\title\00010002" set /a detected=1
+if %fix_detect%==1 if exist "%Documents_Folder%\Dolphin Emulator\Wii\title\00010002" set detected=1
+if %fix_detect%==0 if exist "%userprofile%\Documents\Dolphin Emulator\Wii\title\00010002" set detected=1
 
-if %detected%==1 if %fix_detect%==1 echo %Documents_Folder%\Dolphin Emulator\Wii\title\00010002> "%config%\path_to_install.txt"
-if %detected%==1 if %fix_detect%==0 echo C:\Users\%username%\Documents\Dolphin Emulator\Wii\title\00010002> "%config%\path_to_install.txt"
+if %detected%==1 if %fix_detect%==1 >"%config%\path_to_install.txt" echo %Documents_Folder%\Dolphin Emulator\Wii\title\00010002
+if %detected%==1 if %fix_detect%==0 >"%config%\path_to_install.txt" echo %userprofile%\Documents\Dolphin Emulator\Wii\title\00010002
 goto 1_detect_%detected%
 
 :1_detect_0
@@ -499,7 +519,7 @@ echo ---------------------------------------------------------------------------
 echo.
 echo Could not find folder with Wii NAND used for Dolphin.
 echo.
-echo Default location: C:\Users\%username%\Documents\Dolphin Emulator\Wii\title\00010002
+echo Default location: "%userprofile%\Documents\Dolphin Emulator\Wii\title\00010002"
 echo Make sure that the format of the location (folder structure) will remain the same, otherwise things will break.
 echo.
 set /p dolphin_location=Your location: 
@@ -512,11 +532,13 @@ echo ---------------------------------------------------------------------------
 echo.
 echo --- Forecast Channel Configuration ---
 echo.
-echo Success^^! I've detected the path successfully and saved it... for later :)
-if %incorrect_region%==1 echo :--------------------------------------------------:
-if %incorrect_region%==1 echo : Incorrect region number. Choose correct one.     :
-if %incorrect_region%==1 echo :--------------------------------------------------:
-set /a incorrect_region=0
+echo Success^^! I've detected the path successfully and saved it for later :)
+if %incorrect_region%==1 (
+echo :--------------------------------------------------:
+echo : Incorrect region number. Choose correct one.     :
+echo :--------------------------------------------------:
+)
+set incorrect_region=0
 echo Now, you need to choose your region to use with Forecast Channel from the list below.
 echo 001: Japan                    033: Honduras                       078: Germany
 echo 008: Anguilla                 034: Jamaica                        079: Greece
@@ -548,7 +570,6 @@ echo.
 set /p region=Choose your region: 
 goto 1_detect_1_check
 :1_detect_1_check
-set region_name=NUL
 
 if "%region%"=="001" set region_name=Japan
 if "%region%"=="008" set region_name=Anguilla
@@ -617,7 +638,10 @@ if "%region%"=="107" set region_name=Sweden
 if "%region%"=="108" set region_name=Switzerland
 if "%region%"=="110" set region_name=United Kingdom
 
-if "%region_name%"=="NUL" set /a incorrect_region=1&goto 1_detect_1
+if not defined region_name (
+set incorrect_region=1
+goto 1_detect_1
+)
 
 goto 2_detect_languages
 :2_detect_languages
@@ -632,42 +656,16 @@ echo.
 echo Now... checking languages that you can use.
 echo This can take some time.
 
-set /a region_available_0_Japanese=0
-set /a region_available_1_English=0
-set /a region_available_2_German=0
-set /a region_available_3_French=0
-set /a region_available_4_Spanish=0
-set /a region_available_5_Italian=0
-set /a region_available_6_Dutch=0
+::set %region_available_0%, %region_available_1%, %region_available_2%, ...  %region_available_6% to 0
+for /L %%a in (0,1,6) do set region_available_%%a=0
 
-curl -I --insecure -s -S  http://weather.wii.rc24.xyz/0/%region%/wc24dl.vff | findstr "HTTP/1.1" | findstr "200 OK" >NUL
-set /a temperrorlev=%errorlevel%
-if %temperrorlev%==0 set /a region_available_0_Japanese=1
-
-curl -I --insecure -s -S  http://weather.wii.rc24.xyz/1/%region%/wc24dl.vff | findstr "HTTP/1.1" | findstr "200 OK" >NUL
-set /a temperrorlev=%errorlevel%
-if %temperrorlev%==0 set /a region_available_1_English=1
-
-
-curl -I --insecure -s -S  http://weather.wii.rc24.xyz/2/%region%/wc24dl.vff | findstr "HTTP/1.1" | findstr "200 OK" >NUL
-set /a temperrorlev=%errorlevel%
-if %temperrorlev%==0 set /a region_available_2_German=1
-
-curl -I --insecure -s -S  http://weather.wii.rc24.xyz/3/%region%/wc24dl.vff | findstr "HTTP/1.1" | findstr "200 OK">NUL
-set /a temperrorlev=%errorlevel%
-if %temperrorlev%==0 set /a region_available_3_French=1
-
-curl -I --insecure -s -S  http://weather.wii.rc24.xyz/4/%region%/wc24dl.vff | findstr "HTTP/1.1" | findstr "200 OK">NUL
-set /a temperrorlev=%errorlevel%
-if %temperrorlev%==0 set /a region_available_4_Spanish=1
-
-curl -I --insecure -s -S  http://weather.wii.rc24.xyz/5/%region%/wc24dl.vff | findstr "HTTP/1.1" | findstr "200 OK">NUL
-set /a temperrorlev=%errorlevel%
-if %temperrorlev%==0 set /a region_available_5_Italian=1
-
-curl -I --insecure -s -S http://weather.wii.rc24.xyz/6/%region%/wc24dl.vff | findstr "HTTP/1.1" | findstr "200 OK">NUL
-set /a temperrorlev=%errorlevel%
-if %temperrorlev%==0 set /a region_available_6_Dutch=1
+::Use a loop to, well, loop through the numbers 0 to 6
+for /L %%a in (0,1,6) do (
+::Check if the region is available
+curl -I --insecure -s -S  http://weather.wii.rc24.xyz/%%a/%region%/wc24dl.vff | findstr "HTTP/1.1" | findstr "200 OK" >NUL
+::And if it is (findstr returns errorlevel 0 on success), set the var to 1
+if !errorlevel!==0 set region_available_%%a=1
+)
 
 goto 2_show_languages
 :2_show_languages
@@ -684,33 +682,29 @@ echo (If you can see more, choose a language that you understand)
 echo.
 echo R. Return.
 echo.
-if %region_available_0_Japanese%==1 echo 0. Japanese
-if %region_available_1_English%==1 echo 1. English
-if %region_available_2_German%==1 echo 2. German
-if %region_available_3_French%==1 echo 3. French
-if %region_available_4_Spanish%==1 echo 4. Spanish
-if %region_available_5_Italian%==1 echo 5. Italien
-if %region_available_6_Dutch%==1 echo 6. Dutch
+if %region_available_0%==1 echo 0. Japanese
+if %region_available_1%==1 echo 1. English
+if %region_available_2%==1 echo 2. German
+if %region_available_3%==1 echo 3. French
+if %region_available_4%==1 echo 4. Spanish
+if %region_available_5%==1 echo 5. Italien
+if %region_available_6%==1 echo 6. Dutch
 echo.
 set /p language=Choose language: 
-if %language%==r goto 1_detect_1
-if %language%==R goto 1_detect_1
+if /i %language%==r goto 1_detect_1
+::If the user didn't select something between 0 and 6, ask again
+if not %language% geq 0 if not %language% leq 6 goto 2_show_languages
 
-if %language%==0 if %region_available_0_Japanese%==1 goto 2_forecast_save_config
-if %language%==1 if %region_available_1_English%==1 goto 2_forecast_save_config
-if %language%==2 if %region_available_2_German%==1 goto 2_forecast_save_config
-if %language%==3 if %region_available_3_French%==1 goto 2_forecast_save_config
-if %language%==4 if %region_available_4_Spanish%==1 goto 2_forecast_save_config
-if %language%==5 if %region_available_5_Italian%==1 goto 2_forecast_save_config
-if %language%==6 if %region_available_6_Dutch%==1 goto 2_forecast_save_config
+::If the selected region is available, save the config
+if !region_available_%language%!==1 goto 2_forecast_save_config
 
+::So if the selected language is valid but just not available, also ask again
 goto 2_show_languages
 
 :2_forecast_save_config
 ::Save config
-echo %region%>%config%\forecast_region.txt
-echo language_%language%>%config%\forecast_language.txt
-
+>"%config%\forecast_region.txt" echo %region%
+>"%config%\forecast_language.txt" echo language_%language%
 
 goto 3_news
 :3_news
@@ -735,25 +729,21 @@ echo 6. Italian
 echo 7. Dutch
 set /p region_news=Choose: 
 
-if %region_news%==0 goto 3_news_save_config
-if %region_news%==1 goto 3_news_save_config
-if %region_news%==2 goto 3_news_save_config
-if %region_news%==3 goto 3_news_save_config
-if %region_news%==4 goto 3_news_save_config
-if %region_news%==5 goto 3_news_save_config
-if %region_news%==6 goto 3_news_save_config
-if %region_news%==7 goto 3_news_save_config
+::If the user did select something between 0 and 7, continue on
+if %region_news% geq 0 if %region_news% leq 7 goto 3_news_save_config
 
+::Otherwise, ask again
 goto 3_news
+
 :3_news_save_config
-if %region_news%==0 echo 0_Japan>%config%\news_region.txt
-if %region_news%==1 echo 1_America>%config%\news_region.txt
-if %region_news%==2 echo 1_Europe>%config%\news_region.txt
-if %region_news%==3 echo 2_Europe>%config%\news_region.txt
-if %region_news%==4 echo 3_International>%config%\news_region.txt
-if %region_news%==5 echo 4_International>%config%\news_region.txt
-if %region_news%==6 echo 5_Europe>%config%\news_region.txt
-if %region_news%==7 echo 6_Europe>%config%\news_region.txt
+if %region_news%==0 echo 0_Japan>"%config%\news_region.txt"
+if %region_news%==1 echo 1_America>"%config%\news_region.txt"
+if %region_news%==2 echo 1_Europe>"%config%\news_region.txt"
+if %region_news%==3 echo 2_Europe>"%config%\news_region.txt"
+if %region_news%==4 echo 3_International>"%config%\news_region.txt"
+if %region_news%==5 echo 4_International>"%config%\news_region.txt"
+if %region_news%==6 echo 5_Europe>"%config%\news_region.txt"
+if %region_news%==7 echo 6_Europe>"%config%\news_region.txt"
 
 goto 4
 :4
@@ -763,14 +753,14 @@ echo ---------------------------------------------------------------------------
 echo.
 echo Great^^! The configuration part is done^^!
 echo.
-echo Now, how are you gonna run the program?
+echo Now, you'll need to choose how you want to run the program:
 echo.
 echo 1. Manually
 echo   - You will need to run the program every time you want to download the files.
 echo.
 echo 2. Startup
 echo   - The program will be put into startup and it will start with Windows.
-echo   - The program is lightweight. Even if you have an HDD, it won't slow your PC.
+echo   - The program is lightweight. Even if you have an HDD, it won't slow down your PC.
 echo   - The program will run in background
 echo   - It uses 0% of your CPU and about 4-6MB of RAM.
 echo   - The source code is on GitHub.
@@ -786,7 +776,9 @@ cls
 echo %header%
 echo -----------------------------------------------------------------------------------------------------------------------------
 echo.
-if exist "%MainFolder%/UPDATE/VFF-Downloader-for-Dolphin.exe" del /q "%MainFolder%/VFF-Downloader-for-Dolphin.exe"
+::If a previous file exists, delete it
+taskkill /im VFF-Downloader-for-Dolphin.exe /f
+if exist "%MainFolder%/VFF-Downloader-for-Dolphin.exe" del /q "%MainFolder%/VFF-Downloader-for-Dolphin.exe"
 echo Downloading the script... please wait.
 curl -s -S --insecure "https://kcrpl.github.io/Patchers_Auto_Update/VFF-Downloader-for-Dolphin/UPDATE/VFF-Downloader-for-Dolphin.exe" --output "%MainFolder%/VFF-Downloader-for-Dolphin.exe"
 goto 4_manual_2
@@ -798,7 +790,7 @@ echo.
 echo We're done^^!
 echo Now, if you want to download the files for Dolphin, there will be an option to do so in the Main Menu.
 echo.
-echo Come back at 10th of every hour - that's when scripts generate on our servers! (For example, 8:10AM, 9:10AM, 4:10PM etc.)
+echo Come back at 10th minute of every hour - that's when scripts generate on our servers! (For example, 8:10AM, 9:10AM, 4:10PM etc.)
 echo.
 echo Press any key to go back to main menu.
 pause>NUL
@@ -827,9 +819,13 @@ cls
 echo %header%
 echo -----------------------------------------------------------------------------------------------------------------------------
 echo.
-if exist "C:\Users\%username%\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup\VFF-Downloader-for-Dolphin.exe" del /q "C:\Users\%username%\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup\VFF-Downloader-for-Dolphin.exe"
+::If a previous file exists, delete it
+taskkill /im VFF-Downloader-for-Dolphin.exe /f
+if exist "%userprofile%\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup\VFF-Downloader-for-Dolphin.exe" del /q "C:\Users\%user_name%\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup\VFF-Downloader-for-Dolphin.exe"
 echo Downloading the script... please wait.
-curl -s -S --insecure "https://kcrpl.github.io/Patchers_Auto_Update/VFF-Downloader-for-Dolphin/UPDATE/VFF-Downloader-for-Dolphin.exe" --output "C:\Users\%username%\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup\VFF-Downloader-for-Dolphin.exe"
+::Download the new file into the startup dir
+curl -s -S --insecure "https://kcrpl.github.io/Patchers_Auto_Update/VFF-Downloader-for-Dolphin/UPDATE/VFF-Downloader-for-Dolphin.exe" --output "C:\Users\%user_name%\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup\VFF-Downloader-for-Dolphin.exe"
+::And if curl was needed (windows 8), also copy that
 if exist curl.exe copy /Y "curl.exe" "%MainFolder%"
  
 goto 4_startup_done
@@ -841,19 +837,5 @@ echo.
 echo Done^^!
 echo Press any key to shut down this program and to start the background process. 
 echo You will get a notification after the successful first setup.
-start "" "C:\Users\%username%\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup\VFF-Downloader-for-Dolphin.exe" -first_start
+start "" "C:\Users\%user_name%\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup\VFF-Downloader-for-Dolphin.exe" -first_start
 exit
-
-
-
-
-
-
-
-
-
-
-
-
-
-
