@@ -5,7 +5,7 @@
 
 .VFF File Downloader for Dolphin is a program that replaces Dolphin's missing WiiConnect24 modules. This program will download files that are needed for Forecast and News Channel to work.
 
-### Features
+### Features (Windows)
 * Auto updating - Always stay updated!
 * You can choose your own region as well as language.
 * The downloader can be installed into Windows Startup folder.
@@ -15,6 +15,15 @@
   - The source code is on GitHub.
  
    ... or you can choose to manually run the program every time you want to download the files.
+
+### Features (Unix)
+* You can choose your own region as well as language.
+* You can fix News and Forecast Channels, as well as the Everybody Votes Channel
+* The script uses crontab, a tool for automating tasks, which is pre-installed on most Linux systems
+* Crontab is extremely lightweight, using up only 500 KB of RAM.
+
+>NOTE for Unix users: For this script to work, you will need curl and crontab installed on your computer. 
+
 
 >This program may contain bugs. If you spot any or are just having problems with this program in general, report them on our [Issues Page](https://github.com/RiiConnect24/.VFF-File-Downloader-for-Dolphin/issues), e-mail us at [support@riiconnect24.net](mailto:support@riiconnect24.net), or ask us for help on our [Discord server](https://discord.gg/b4Y7jfD)!
 
