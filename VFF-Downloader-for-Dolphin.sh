@@ -1,6 +1,6 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
-version=0.1
+version=1.0.1
 
 printf '\033[8;30;150t'
 
@@ -8,12 +8,28 @@ time_fore=$((1 + $RANDOM % 28))
 time_news=$((30 + $RANDOM % 29))
 time_evc=$((1 + $RANDOM % 58))
 
-last_build=2020/12/10
-at=9:45
-header=".VFF Downloader for Dolphin - Created by Noah Pistilli"
+header=".VFF Downloader for Dolphin - Created by Noah Pistilli (c) Copyright Noah Pistilli 2021"
 header2="------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------"
 path='~/Library/Application\ Support/Dolphin/Wii'
 
+function check_dependency {
+  if [ -z "$2" ]; then
+    # Expect that the package name is the same as the command being searched for.
+    package_name=$1
+  else
+    # The package name was specified to be different.
+    package_name=$2
+  fi
+
+  if ! command -v $1 &> /dev/null; then echo >&2 "Cannot find the command $1. Please install a $package_name package with your package manager. Name of package may vary from distro to distro" 
+     exit 1
+  fi
+}
+
+function check_dependencies {
+  check_dependency crontab cron
+  check_dependency curl
+}
 
 function main {
    clear
@@ -24,8 +40,10 @@ function main {
 if [ -e ~/.vff/vff_fore.txt ] || [ -e ~/.vff/vff_evc.txt ]
 then
  del="3. Delete VFF Downloader files"
+ check_dependencies
  main
 else
+ check_dependencies
  main
 fi
 
@@ -34,12 +52,12 @@ function reg_select {
     printf "\n$header\n$header2\n\nChoose the region of your emulated Wii Menu\n\n1. USA\n2. Europe\n3. Japan\n\n"
     read -p "Choose: " s
 
-    if [ "$s" == "1" ]; then reg=45; number_1; fi
-    if [ "$s" == "2" ]; then reg=50; number_1; fi
-    if [ "$s" == "3" ]; then reg=4a; number_1; fi
+case $s in 
+       1) reg=45; number_1 ;;
+       2) reg=50; number_1 ;;
+       3) reg=4a; number_1 ;;
+    esac
 }
-
-
 
 function number_1 {
     clear
@@ -128,32 +146,34 @@ function fore_region {
 printf "\n$header\n$header2\n\n--- Forecast Channel Configuration ---\n\nNow, you need to choose the region of the Emulated Wii Console to use with Forecast Channel from the list below.\n\n001: Japan                      019: Cayman Islands\n008: Anguilla                   020: Chile\n009: Antigua and Barbuda        021: Colombia\n010: Argentina                  022: Costa Rica\n011: Aruba                      023: Dominica\n012: Bahamas                    024: Dominican Republic\n013: Barbados                   025: Ecuador\n014: Belize                     026: El Salvador\n015: Bolivia                    027: French Guiana\n016: Brazil                     028: Grenada\n017: British Virgin Islands     029: Guadeloupe\n018: Canada                     030: Guatemala\n\n1: More Countries\n\n"
 read -p "Choose your region:" s
 
-if [ "$s" == "001" ]; then reg_name = "Japan"; forecast_jpn
-#NTSC Countries
-elif [ "$s" == "008" ]; then reg_name="Anguilla"; forecast_ntsc
-elif [ "$s" == "009" ]; then reg_name="Antigua"; forecast_ntsc
-elif [ "$s" == "010" ]; then reg_name="Argentina"; forecast_ntsc
-elif [ "$s" == "011" ]; then reg_name="Aruba"; forecast_ntsc
-elif [ "$s" == "012" ]; then reg_name="Bahamas"; forecast_ntsc
-elif [ "$s" == "013" ]; then reg_name="Barbados"; forecast_ntsc
-elif [ "$s" == "014" ]; then reg_name="Belize"; forecast_ntsc
-elif [ "$s" == "015" ]; then reg_name="Bolivia"; forecast_ntsc
-elif [ "$s" == "016" ]; then reg_name="Brazil"; forecast_ntsc
-elif [ "$s" == "017" ]; then reg_name="British Virgin Islands"; forecast_ntsc
-elif [ "$s" == "018" ]; then reg_name="Canada"; forecast_ntsc
-elif [ "$s" == "019" ]; then reg_name="Cayman Islands"; forecast_ntsc
-elif [ "$s" == "020" ]; then reg_name="Chile"; forecast_ntsc
-elif [ "$s" == "021" ]; then reg_name="Colombia"; forecast_ntsc
-elif [ "$s" == "022" ]; then reg_name="Costa Rica"; forecast_ntsc
-elif [ "$s" == "023" ]; then reg_name="Dominica"; forecast_ntsc
-elif [ "$s" == "024" ]; then reg_name="Dominican Republic"; forecast_ntsc
-elif [ "$s" == "025" ]; then reg_name="Ecuador"; forecast_ntsc
-elif [ "$s" == "026" ]; then reg_name="El Salvador"; forecast_ntsc
-elif [ "$s" == "027" ]; then reg_name="Guiana"; forecast_ntsc
-elif [ "$s" == "028" ]; then reg_name="Grenada"; forecast_ntsc
-elif [ "$s" == "029" ]; then reg_name="Guadeloupe"; forecast_ntsc
-elif [ "$s" == "030" ]; then reg_name="Guatemala"; forecast_ntsc
-elif [ "$s" == "1" ]; then fore_region2; fi
+case $s in 
+   001) reg_name = "Japan"; forecast_jpn ;;
+   008) reg_name="Anguilla"; forecast_ntsc ;;
+   009) reg_name="Antigua"; forecast_ntsc ;;
+   010) reg_name="Argentina"; forecast_ntsc ;; 
+   011) reg_name="Aruba"; forecast_ntsc ;;
+   012) reg_name="Bahamas"; forecast_ntsc ;; 
+   013) reg_name="Barbados"; forecast_ntsc ;;
+   014) reg_name="Belize"; forecast_ntsc ;;
+   015) reg_name="Bolivia"; forecast_ntsc ;;
+   016) reg_name="Brazil"; forecast_ntsc ;;
+   017) reg_name="British Virgin Islands"; forecast_ntsc ;;
+   018) reg_name="Canada"; forecast_ntsc ;;
+   019) reg_name="Cayman Islands"; forecast_ntsc ;;
+   020) reg_name="Chile"; forecast_ntsc ;;
+   021) reg_name="Colombia"; forecast_ntsc ;;
+   022) reg_name="Costa Rica"; forecast_ntsc ;; 
+   023) reg_name="Dominica"; forecast_ntsc ;; 
+   024) reg_name="Dominican Republic"; forecast_ntsc ;;
+   025) reg_name="Ecuador"; forecast_ntsc ;; 
+   026) reg_name="El Salvador"; forecast_ntsc ;;
+   027) reg_name="Guiana"; forecast_ntsc ;; 
+   028) reg_name="Grenada"; forecast_ntsc ;; 
+   029) reg_name="Guadeloupe"; forecast_ntsc ;;
+   030) reg_name="Guatemala"; forecast_ntsc ;;
+   1) fore_region2 ;; 
+   * ) printf "Invalid selection.\n"; sleep 2; fore_region ;;
+esac
 }
 
 function fore_region2 {
@@ -161,32 +181,35 @@ function fore_region2 {
 printf "\n$header\n$header2\n\n--- Forecast Channel Configuration ---\n\nNow, you need to choose your region to use with Forecast Channel from the list below.\n\n031: Guyana                  043: St. Kitts and Nevis\n032: Haiti                   044: St. Lucia\n033: Honduras                045: St. Vincent and the Grenadines\n034: Jamacia                 046: Suriname\n035: Martinique              047: Trinidad and Tobago\n036: Mexico                  048: Turks and Caicos Islands\n037: Monsterrat              049: United States\n038: Netherlands Antilles    050: Uraguay\n039: Nicaragua               051: US Virgin Islands\n040: Panama                  052: Venezuela\n041: Paraguay                065: Austraila\n042: Peru                    066: Austria\n\n1: More Countries\n\n2: Back\n\n"
 read -p "Choose your region:" s
 
-if [ "$s" == "031" ]; then reg_name="Guyana"; forecast_ntsc
-elif [ "$s" == "032" ]; then reg_name="Haiti"; forecast_ntsc
-elif [ "$s" == "033" ]; then reg_name="Honduras"; forecast_ntsc
-elif [ "$s" == "034" ]; then reg_name="Jamaica"; forecast_ntsc
-elif [ "$s" == "035" ]; then reg_name="Martinique"; forecast_ntsc
-elif [ "$s" == "036" ]; then reg_name="Mexico"; forecast_ntsc
-elif [ "$s" == "037" ]; then reg_name="Monsterrat"; forecast_ntsc
-elif [ "$s" == "038" ]; then reg_name="Netherland Antilles"; forecast_ntsc
-elif [ "$s" == "039" ]; then reg_name="Nicaragua"; forecast_ntsc
-elif [ "$s" == "040" ]; then reg_name="Panama"; forecast_ntsc
-elif [ "$s" == "041" ]; then reg_name="Paraguay"; forecast_ntsc
-elif [ "$s" == "042" ]; then reg_name="Peru"; forecast_ntsc
-elif [ "$s" == "043" ]; then reg_name="St. Kitts and Nevis"; forecast_ntsc
-elif [ "$s" == "044" ]; then reg_name="St. Lucia"; forecast_ntsc
-elif [ "$s" == "045" ]; then reg_name="St. Vincent and the Grenadines"; forecast_ntsc
-elif [ "$s" == "046" ]; then reg_name="Suriname"; forecast_ntsc
-elif [ "$s" == "047" ]; then reg_name="Trinidad and Tobago"; forecast_ntsc
-elif [ "$s" == "048" ]; then reg_name="Turks and Caicos Islands"; forecast_ntsc
-elif [ "$s" == "049" ]; then reg_name="United States"; forecast_ntsc
-elif [ "$s" == "050" ]; then reg_name="Uruguay"; forecast_ntsc
-elif [ "$s" == "051" ]; then reg_name="US Virgin Islands"; forecast_ntsc
-elif [ "$s" == "052" ]; then reg_name="Venezuela"; forecast_ntsc
-elif [ "$s" == "065" ]; then reg_name="Australia"; forecast_eur
-elif [ "$s" == "066" ]; then reg_name="Austria"; forecast_eur
-elif [ "$s" == "1" ]; then fore_region3; fi
-if [ "$s" == "2" ]; then fore_region; fi
+case $s in 
+    031) reg_name="Guyana"; forecast_ntsc ;;
+    032) reg_name="Haiti"; forecast_ntsc ;; 
+    033) reg_name="Honduras"; forecast_ntsc ;; 
+    034) reg_name="Jamaica"; forecast_ntsc ;; 
+    035) reg_name="Martinique"; forecast_ntsc ;;
+    036) reg_name="Mexico"; forecast_ntsc ;;
+    037) reg_name="Monsterrat"; forecast_ntsc ;;
+    038) reg_name="Netherland Antilles"; forecast_ntsc ;;
+    039) reg_name="Nicaragua"; forecast_ntsc ;;
+    040) reg_name="Panama"; forecast_ntsc ;;
+    041) reg_name="Paraguay"; forecast_ntsc ;;
+    042) reg_name="Peru"; forecast_ntsc ;;
+    043) reg_name="St. Kitts and Nevis"; forecast_ntsc ;;
+    044) reg_name="St. Lucia"; forecast_ntsc ;;
+    045) reg_name="St. Vincent and the Grenadines"; forecast_ntsc ;;
+    046) reg_name="Suriname"; forecast_ntsc ;;
+    047) reg_name="Trinidad and Tobago"; forecast_ntsc ;;
+    048) reg_name="Turks and Caicos Islands"; forecast_ntsc ;;
+    049) reg_name="United States"; forecast_ntsc ;;
+    050) reg_name="Uruguay"; forecast_ntsc ;;
+    051) reg_name="US Virgin Islands"; forecast_ntsc ;;
+    052) reg_name="Venezuela"; forecast_ntsc ;;
+    065) reg_name="Australia"; forecast_eur ;;
+    066) reg_name="Austria"; forecast_eur ;;
+    1) fore_region3 ;;
+    2) fore_region ;;
+    *) printf "Invalid selection.\n"; sleep 2; fore_region2 ;;
+esac
 }
 
 function fore_region3 {
@@ -194,26 +217,29 @@ clear
 printf "\n$header\n$header2\n\n--- Forecast Channel Configuration ---\n\nNow, you need to choose your region to use with Forecast Channel from the list below.\n\n067: Belgium       097: Poland\n074: Denmark       098: Portugal\n076: Finland       099: Romania\n078: France        105: Spain\n078: Germany       107: Sweden\n079: Greece        108: Switzerland\n082: Ireland       110: United Kingdom\n083: Italy\n088: Luxembourg\n094: Netherland\n095: New Zealand\n096: Norway\n\n1: Back\n\n"
 read -p "Choose your region:" s
 
-if [ "$s" == "067" ]; then reg_name="Belgium"; forecast_eur
-elif [ "$s" == "074" ]; then reg_name="Denmark"; forecast_eur
-elif [ "$s" == "076" ]; then reg_name="Finland"; forecast_eur
-elif [ "$s" == "077" ]; then reg_name="France"; forecast_eur
-elif [ "$s" == "078" ]; then reg_name="Germany"; forecast_eur
-elif [ "$s" == "079" ]; then reg_name="Greece"; forecast_eur
-elif [ "$s" == "082" ]; then reg_name="Ireland"; forecast_eur
-elif [ "$s" == "083" ]; then reg_name="Italy"; forecast_eur
-elif [ "$s" == "088" ]; then reg_name="Luxembourg"; forecast_eur
-elif [ "$s" == "094" ]; then reg_name="Netherlands"; forecast_eur
-elif [ "$s" == "095" ]; then reg_name="New Zealand"; forecast_eur
-elif [ "$s" == "096" ]; then reg_name="Norway"; forecast_eur
-elif [ "$s" == "097" ]; then reg_name="Poland"; forecast_eur
-elif [ "$s" == "098" ]; then reg_name="Portugal"; forecast_eur
-elif [ "$s" == "099" ]; then reg_name="Romania"; forecast_eur
-elif [ "$s" == "105" ]; then reg_name="Spain"; forecast_eur
-elif [ "$s" == "107" ]; then reg_name="Sweden"; forecast_eur
-elif [ "$s" == "108" ]; then reg_name="Switzerland"; forecast_eur
-elif [ "$s" == "110" ]; then reg_name="United Kingdom"; forecast_eur
-elif [ "$s" == "1" ]; then fore_region2; fi
+case $s in
+   067) reg_name="Belgium"; forecast_eur ;;
+   074) reg_name="Denmark"; forecast_eur ;;
+   076) reg_name="Finland"; forecast_eur ;;
+   077) reg_name="France"; forecast_eur ;;
+   078) reg_name="Germany"; forecast_eur ;;
+   079) reg_name="Greece"; forecast_eur ;;
+   082) reg_name="Ireland"; forecast_eur ;;
+   083) reg_name="Italy"; forecast_eur ;;
+   088) reg_name="Luxembourg"; forecast_eur ;;
+   094) reg_name="Netherlands"; forecast_eur ;;
+   095) reg_name="New Zealand"; forecast_eur ;;
+   096) reg_name="Norway"; forecast_eur ;;
+   097) reg_name="Poland"; forecast_eur ;;
+   098) reg_name="Portugal"; forecast_eur ;;
+   099) reg_name="Romania"; forecast_eur ;;
+   105) reg_name="Spain"; forecast_eur ;;
+   107) reg_name="Sweden"; forecast_eur ;;
+   108) reg_name="Switzerland"; forecast_eur ;;
+   110) reg_name="United Kingdom"; forecast_eur ;;
+   1) fore_region2 ;;
+   *) printf "Invalid selection.\n"; sleep 2; fore_region3 ;;
+esac
 }
 
 function forecast_jpn {
@@ -273,10 +299,13 @@ function del_vff {
     printf "\n$header\n$header2\n\nAfter completing this, your computer will no longer download the .Vff files neccsarry for the Wiiconnect24 channels to work. Select the options below to proceed.\n\n1. Delete Forecast and News Channel Files\n\n2. Delete Everybody Vote Channel Files.\n\n3. Delete Everything\n\n4. Exit\n\n"
     read -p "Choose: " s
     
-    if [ "$s" == 1 ]; then crontab -l | grep -v 'curl -s -S --insecure http://weather.wii.rc24.xyz'  | crontab -; crontab -l | grep -v 'curl -s -S --insecure http://news.wii.rc24.xyz/v2'  | crontab -; rm -rf ~/.vff/vff_fore.txt; del_files_fin; fi
-    if [ "$s" == 2 ]; then crontab -l | grep -v 'curl -s -S --insecure https://vt.wii.rc24.xyz/018/wc24dl.vff'  | crontab -; rm -rf ~/.vff/vff_evc.txt; del_files_fin; fi
-    if [ "$s" == 3 ]; then crontab -l | grep -v 'curl -s -S --insecure http://weather.wii.rc24.xyz'  | crontab -; crontab -l | grep -v 'curl -s -S --insecure http://news.wii.rc24.xyz/v2'  | crontab -; crontab -l | grep -v 'curl -s -S --insecure https://vt.wii.rc24.xyz/018/wc24dl.vff'  | crontab -; rm -rf ~/.vff/vff_fore.txt; rm -rf ~/.vff/vff_evc.txt; del_files_fin; fi
-    if [ "$s" == 4 ]; then exit; fi
+    case "$s" in 
+       1) crontab -l | grep -v 'curl -s -S --insecure http://weather.wii.rc24.xyz'  | crontab -; crontab -l | grep -v 'curl -s -S --insecure http://news.wii.rc24.xyz/v2'  | crontab -; rm -rf ~/.vff/vff_fore.txt; del_files_fin ;;
+       2) crontab -l | grep -v 'curl -s -S --insecure https://vt.wii.rc24.xyz/018/wc24dl.vff'  | crontab -; rm -rf ~/.vff/vff_evc.txt; del_files_fin ;;
+       3) crontab -l | grep -v 'curl -s -S --insecure http://weather.wii.rc24.xyz'  | crontab -; crontab -l | grep -v 'curl -s -S --insecure http://news.wii.rc24.xyz/v2'  | crontab -; crontab -l | grep -v 'curl -s -S --insecure https://vt.wii.rc24.xyz/018/wc24dl.vff'  | crontab -; rm -rf ~/.vff/vff_fore.txt; rm -rf ~/.vff/vff_evc.txt; del_files_fin ;;
+       4) exit ;;
+       *) printf "Invalid selection.\n"; sleep 2; del_vff ;;
+    esac
 }
 
 function del_files_fin {
@@ -285,6 +314,8 @@ function del_files_fin {
     exit
 }
 
-if [ "$p" == "1" ]; then reg_select
-elif [ "$p" == "2" ]; then exit; fi
-if [ "$p" == "3" ]; then del_vff; fi
+case "$p" in
+  1) reg_select ;;
+  2) exit ;;
+  3) del_vff ;;
+esac
