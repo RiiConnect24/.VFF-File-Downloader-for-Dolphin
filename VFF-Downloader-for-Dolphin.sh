@@ -4,9 +4,9 @@ version=1.0.1
 
 printf '\033[8;30;150t'
 
-time_fore=$((1 + $RANDOM % 28))
-time_news=$((30 + $RANDOM % 29))
-time_evc=$((1 + $RANDOM % 58))
+time_fore=$(($RANDOM % 28))
+time_news=$(($RANDOM % 29))
+time_evc=$(($RANDOM % 58))
 
 last_build=2020/12/10
 at=9:45
@@ -145,7 +145,7 @@ function evc_region_select {
 	036: Mexico                  095: New Zeland\n\
 	040: Panama                  096: Norway\n\
 	042: Paraguay                097: Poland\n\
-	049: USA                     098: Portugal\n\
+	049: United States           098: Portugal\n\
 	052: Venezuela               105: Spain\n\
 	065: Australia               107: Sweden\n\
 	066: Austria                 108: Switzerland\n\
@@ -159,7 +159,7 @@ function evc_region_select {
 
 function dupli_prevent_fore {
 	clear
-	if [ -e ~/.vff/vff_fore.txt  ]
+	if [ -e ~/.vff/vff_fore.txt ]
 	then
 		printf "\n$header\n$header2\n\nYou have already used this script. To prevent duplicate crontabs from being created, we are exiting the script for you.\n\n"
 		exit
@@ -187,36 +187,36 @@ function fore_region {
 	018: Canada                  030: Guatemala\n\
 	\n\n\
 	1: More Countries\n\\n" | fold -s -w "$(tput cols)"
-read -p "Choose your region: " s
+	read -p "Choose your region: " s
 
-case $s in
-	001) reg_name = "Japan"; forecast_jpn ;;
-	008) reg_name="Anguilla"; forecast_ntsc ;;
-	009) reg_name="Antigua"; forecast_ntsc ;;
-	010) reg_name="Argentina"; forecast_ntsc ;;
-	011) reg_name="Aruba"; forecast_ntsc ;;
-	012) reg_name="Bahamas"; forecast_ntsc ;;
-	013) reg_name="Barbados"; forecast_ntsc ;;
-	014) reg_name="Belize"; forecast_ntsc ;;
-	015) reg_name="Bolivia"; forecast_ntsc ;;
-	016) reg_name="Brazil"; forecast_ntsc ;;
-	017) reg_name="British Virgin Islands"; forecast_ntsc ;;
-	018) reg_name="Canada"; forecast_ntsc ;;
-	019) reg_name="Cayman Islands"; forecast_ntsc ;;
-	020) reg_name="Chile"; forecast_ntsc ;;
-	021) reg_name="Colombia"; forecast_ntsc ;;
-	022) reg_name="Costa Rica"; forecast_ntsc ;;
-	023) reg_name="Dominica"; forecast_ntsc ;;
-	024) reg_name="Dominican Republic"; forecast_ntsc ;;
-	025) reg_name="Ecuador"; forecast_ntsc ;;
-	026) reg_name="El Salvador"; forecast_ntsc ;;
-	027) reg_name="Guiana"; forecast_ntsc ;;
-	028) reg_name="Grenada"; forecast_ntsc ;;
-	029) reg_name="Guadeloupe"; forecast_ntsc ;;
-	030) reg_name="Guatemala"; forecast_ntsc ;;
-	1) fore_region2 ;;
-	* ) printf "Invalid selection.\n"; sleep 2; fore_region ;;
-esac
+	case $s in
+		001) reg_name="Japan"; forecast_jpn ;;
+		008) reg_name="Anguilla"; forecast_ntsc ;;
+		009) reg_name="Antigua"; forecast_ntsc ;;
+		010) reg_name="Argentina"; forecast_ntsc ;;
+		011) reg_name="Aruba"; forecast_ntsc ;;
+		012) reg_name="Bahamas"; forecast_ntsc ;;
+		013) reg_name="Barbados"; forecast_ntsc ;;
+		014) reg_name="Belize"; forecast_ntsc ;;
+		015) reg_name="Bolivia"; forecast_ntsc ;;
+		016) reg_name="Brazil"; forecast_ntsc ;;
+		017) reg_name="British Virgin Islands"; forecast_ntsc ;;
+		018) reg_name="Canada"; forecast_ntsc ;;
+		019) reg_name="Cayman Islands"; forecast_ntsc ;;
+		020) reg_name="Chile"; forecast_ntsc ;;
+		021) reg_name="Colombia"; forecast_ntsc ;;
+		022) reg_name="Costa Rica"; forecast_ntsc ;;
+		023) reg_name="Dominica"; forecast_ntsc ;;
+		024) reg_name="Dominican Republic"; forecast_ntsc ;;
+		025) reg_name="Ecuador"; forecast_ntsc ;;
+		026) reg_name="El Salvador"; forecast_ntsc ;;
+		027) reg_name="Guiana"; forecast_ntsc ;;
+		028) reg_name="Grenada"; forecast_ntsc ;;
+		029) reg_name="Guadeloupe"; forecast_ntsc ;;
+		030) reg_name="Guatemala"; forecast_ntsc ;;
+		1) fore_region2 ;;
+		* ) printf "Invalid selection.\n"; sleep 2; fore_region ;;
+	esac
 }
 
 function fore_region2 {
@@ -298,12 +298,12 @@ function forecast_jpn {
 function forecast_ntsc {
 	clear
 	printf "\n$header\n$header2\n\n\
---- Forecast Channel Configuration ---\n\n\
-The region that you have chosen is: $reg_name\n\n\
-1. English\n\
-3. French\n\
-4. Spanish\n\
-0 <- Back\n\n" | fold -s -w $(tput cols)
+	--- Forecast Channel Configuration ---\n\n\
+	The region that you have chosen is: $reg_name\n\n\
+	1. English\n\
+	3. French\n\
+	4. Spanish\n\
+	0 <- Back\n\n" | fold -s -w $(tput cols)
 	read -p "Choose your prefered Language:" l
 
 	if [ ! -d ~/.vff ]; then mkdir ~/.vff; fi
@@ -345,9 +345,9 @@ function del_vff {
 	read -p "Choose: " s
 
 	case "$s" in
-		1) crontab -l | grep -v 'curl -s -S --insecure http://weather.wii.rc24.xyz'  | crontab -; crontab -l | grep -v 'curl -s -S --insecure http://news.wii.rc24.xyz/v2'  | crontab -; rm -rf ~/.vff/vff_fore.txt; del_files_fin ;;
-		2) crontab -l | grep -v 'curl -s -S --insecure https://vt.wii.rc24.xyz/018/wc24dl.vff'  | crontab -; rm -rf ~/.vff/vff_evc.txt; del_files_fin ;;
-		3) crontab -l | grep -v 'curl -s -S --insecure http://weather.wii.rc24.xyz'  | crontab -; crontab -l | grep -v 'curl -s -S --insecure http://news.wii.rc24.xyz/v2'  | crontab -; crontab -l | grep -v 'curl -s -S --insecure https://vt.wii.rc24.xyz/018/wc24dl.vff'  | crontab -; rm -rf ~/.vff/vff_fore.txt; rm -rf ~/.vff/vff_evc.txt; del_files_fin ;;
+		1) crontab -l | grep -v 'curl -s -S --insecure http://weather.wii.rc24.xyz' | crontab -; crontab -l | grep -v 'curl -s -S --insecure http://news.wii.rc24.xyz/v2' | crontab -; rm -rf ~/.vff/vff_fore.txt; del_files_fin ;;
+		2) crontab -l | grep -v 'curl -s -S --insecure https://vt.wii.rc24.xyz/018/wc24dl.vff' | crontab -; rm -rf ~/.vff/vff_evc.txt; del_files_fin ;;
+		3) crontab -l | grep -v 'curl -s -S --insecure http://weather.wii.rc24.xyz' | crontab -; crontab -l | grep -v 'curl -s -S --insecure http://news.wii.rc24.xyz/v2' | crontab -; crontab -l | grep -v 'curl -s -S --insecure https://vt.wii.rc24.xyz/018/wc24dl.vff' | crontab -; rm -rf ~/.vff/vff_fore.txt; rm -rf ~/.vff/vff_evc.txt; del_files_fin ;;
 		4) exit ;;
 		*) printf "Invalid selection.\n"; sleep 2; del_vff ;;
 	esac
@@ -360,7 +360,7 @@ function del_files_fin {
 }
 
 case "$p" in
-  1) reg_select ;;
-  2) exit ;;
-  3) del_vff ;;
+	1) reg_select ;;
+	2) exit ;;
+	3) del_vff ;;
 esac
