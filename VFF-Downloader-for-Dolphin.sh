@@ -17,9 +17,10 @@ header2="-----------------------------------------------------------------------
 
 function path_finder {
 	case "$OSTYPE" in
-		Darwin*) path='~/Library/Application\ Support/Dolphin/Wii'; check_dependencies ;;
-		*) path='~/.local/share/dolphin-emu/Wii'; check_dependencies ;;
+		darwin*) path='~/Library/Application\ Support/Dolphin/Wii'; check_dependencies ;;
+		linux*) path='~/.local/share/dolphin-emu/Wii'; check_dependencies ;;
 	esac
+}
 
 function check_dependency {
 	if [ -z "$2" ]; then
