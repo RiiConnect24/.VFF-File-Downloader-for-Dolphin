@@ -5,7 +5,7 @@ version=1.0.1
 printf '\033[8;30;150t'
 
 time_fore=$(($RANDOM % 28))
-time_news=$(($RANDOM % 29))
+time_news=$((30 + $RANDOM % 29))
 time_evc=$(($RANDOM % 58))
 
 last_build=2020/12/10
@@ -184,9 +184,8 @@ function fore_region {
 	015: Bolivia                 027: French Guiana\n\
 	016: Brazil                  028: Grenada\n\
 	017: British Virgin Islands  029: Guadeloupe\n\
-	018: Canada                  030: Guatemala\n\
-	\n\n\
-	1: More Countries\n\\n" | fold -s -w "$(tput cols)"
+	018: Canada                  030: Guatemala\n\n\
+	1: More Countries\n\n" | fold -s -w "$(tput cols)"
 	read -p "Choose your region: " s
 
 	case $s in
@@ -215,13 +214,29 @@ function fore_region {
 		029) reg_name="Guadeloupe"; forecast_ntsc ;;
 		030) reg_name="Guatemala"; forecast_ntsc ;;
 		1) fore_region2 ;;
-		* ) printf "Invalid selection.\n"; sleep 2; fore_region ;;
+		* ) printf "Invalid selection.\n"; sleep 2; fore_region ;; 
 	esac
 }
 
 function fore_region2 {
 	clear
-	printf "\n$header\n$header2\n\n--- Forecast Channel Configuration ---\n\nNow, you need to choose your region to use with Forecast Channel from the list below.\n\n031: Guyana                  043: St. Kitts and Nevis\n032: Haiti                   044: St. Lucia\n033: Honduras                045: St. Vincent and the Grenadines\n034: Jamacia                 046: Suriname\n035: Martinique              047: Trinidad and Tobago\n036: Mexico                  048: Turks and Caicos Islands\n037: Monsterrat              049: United States\n038: Netherlands Antilles    050: Uraguay\n039: Nicaragua               051: US Virgin Islands\n040: Panama                  052: Venezuela\n041: Paraguay                065: Austraila\n042: Peru                    066: Austria\n\n1: More Countries\n\n2: Back\n\n"
+	printf "\n$header\n$header2\n\n\
+	--- Forecast Channel Configuration ---\n\n\
+	Now, you need to choose your region to use with Forecast Channel from the list below.\n\n\
+	031: Guyana                   043: St. Kitts and Nevis\n\
+	032: Haiti                    044: St. Lucia\n\
+	033: Honduras                 045: St. Vincent and the Grenadines\n\
+	034: Jamacia                  046: Suriname\n\
+	035: Martinique               047: Trinidad and Tobago\n\
+	036: Mexico                   048: Turks and Caicos Islands\n\
+	037: Monsterrat               049: United States\n\
+	038: Netherlands Antilles     050: Uraguay\n\
+	039: Nicaragua                051: US Virgin Islands\n\
+	040: Panama                   052: Venezuela\n\
+	041: Paraguay                 065: Austraila\n\
+	042: Peru                     066: Austria\n\n\
+	1: More Countries\n\n\
+	2: Back\n\n" | fold -s -w "$(tput cols)"
 	read -p "Choose your region:" s
 
 	case $s in
@@ -257,7 +272,22 @@ function fore_region2 {
 
 function fore_region3 {
 	clear
-	printf "\n$header\n$header2\n\n--- Forecast Channel Configuration ---\n\nNow, you need to choose your region to use with Forecast Channel from the list below.\n\n067: Belgium       097: Poland\n074: Denmark       098: Portugal\n076: Finland       099: Romania\n078: France        105: Spain\n078: Germany       107: Sweden\n079: Greece        108: Switzerland\n082: Ireland       110: United Kingdom\n083: Italy\n088: Luxembourg\n094: Netherland\n095: New Zealand\n096: Norway\n\n1: Back\n\n"
+	printf "\n$header\n$header2\n\n\
+	--- Forecast Channel Configuration ---\n\n\
+	Now, you need to choose your region to use with Forecast Channel from the list below.\n\n\
+	067: Belgium       	      097: Poland\n\
+	074: Denmark                  098: Portugal\n\
+	076: Finland       	      099: Romania\n\
+	078: France        	      105: Spain\n\
+	078: Germany       	      107: Sweden\n\
+	079: Greece        	      108: Switzerland\n\
+	082: Ireland       	      110: United Kingdom\n\
+	083: Italy\n\
+	088: Luxembourg\n\
+	094: Netherland\n\
+	095: New Zealand\n\
+	096: Norway\n\n\
+	1: Back\n\n" | fold -s -w "$(tput cols)"
 	read -p "Choose your region:" s
 
 	case $s in
@@ -287,12 +317,16 @@ function fore_region3 {
 
 function forecast_jpn {
 	clear
-	printf "\n$header\n$header2\n\n--- Forecast Channel Configuration ---\n\nThe region that you have chosen is: $reg_name\n\n0. Japanese\n1 <- Back\n\n"
+	printf "\n$header\n$header2\n\n\
+	--- Forecast Channel Configuration ---\n\n\
+	The region that you have chosen is: $reg_name\n\n\
+	0. Japanese\n\
+	1 <- Back\n\n" | fold -s -w "$(tput cols)"
 	read -p "Choose your prefered Language:" s
 
 	if [ ! -d ~/.vff ]; then mkdir ~/.vff; fi
 	if [ "$s" == "0" ]; then (crontab -l; echo "$time_fore * * * * curl -s -S --insecure http://weather.wii.rc24.xyz/0/001/wc24dl.vff --output $path/title/00010002/4841465a/data/"wc24dl.vff"") | sort - | uniq - | crontab -; echo 'prevents duplicate cron jobs in the vff downloader' > ~/.vff/vff_fore.txt; news; fi
-	if [ "$s" == "1" ]; then fore_region_auto; fi
+	if [ "$s" == "1" ]; then fore_region; fi
 }
 
 function forecast_ntsc {
@@ -303,34 +337,62 @@ function forecast_ntsc {
 	1. English\n\
 	3. French\n\
 	4. Spanish\n\
-	0 <- Back\n\n" | fold -s -w $(tput cols)
+	0 <- Back\n\n" | fold -s -w "$(tput cols)"
 	read -p "Choose your prefered Language:" l
 
 	if [ ! -d ~/.vff ]; then mkdir ~/.vff; fi
-	if [ "$l" == "1" ] || [ "$l" == "3" ] || [ "$l" == "4" ]; then (crontab -l; echo "$time_fore * * * * curl -s -S --insecure http://weather.wii.rc24.xyz/$l/$s/wc24dl.vff --output "$path"/title/00010002/48414645/data/"wc24dl.vff"") | sort - | uniq - | crontab -; echo 'prevents duplicate cron jobs in the vff downloader' > ~/.vff/vff_fore.txt; news; fi
-	if [ "$l" == "0" ]; then fore_region_auto; fi
+	case $l in 
+		1|3|4) (crontab -l; echo "$time_fore * * * * curl -s -S --insecure http://weather.wii.rc24.xyz/$l/$s/wc24dl.vff --output "$path"/title/00010002/48414645/data/"wc24dl.vff"") | sort - | uniq - | crontab -; echo 'prevents duplicate cron jobs in the vff downloader' > ~/.vff/vff_fore.txt; news ;;
+		0) fore_region ;;
+		*) printf "Invalid selection.\n"; sleep 2; forecast_ntsc ;;
+	esac
+	
 }
 
 function forecast_eur {
-clear
-printf "\n$header\n$header2\n\n--- Forecast Channel Configuration ---\n\nThe region that you have chosen is: $reg_name\n\n1. English\n2.German\n3. French\n 4. Spanish\n5. Italian\n6. Dutch\n0 <- Back\n\n"
-read -p "Choose your prefered Language:" l
+	clear
+	printf "\n$header\n$header2\n\n\
+	--- Forecast Channel Configuration ---\n\n\
+	The region that you have chosen is: $reg_name\n\n\
+	1. English\n\
+	2.German\n\
+	3. French\n\
+	4. Spanish\n\
+	5. Italian\n\
+	6. Dutch\n\
+	0 <- Back\n\n" | fold -s -w "$(tput cols)"
+	read -p "Choose your prefered Language:" l
 
-if [ ! -d ~/.vff ]; then mkdir ~/.vff; fi
-	if [ "$l" == "1" || [ "$l" == "2" ] || [ "$l" == "3" ] || [ "$l" == "4" ] || [ "$l" == "5" ] || [ "$l" == "6" ]; then (crontab -l; echo "$time_fore * * * * curl -s -S --insecure http://weather.wii.rc24.xyz/$l/$s/wc24dl.vff --output $path/title/00010002/48414650/data/"wc24dl.vff"") | sort - | uniq - | crontab -; echo 'prevents duplicate cron jobs in the vff downloader' > ~/.vff/vff_fore.txt; news; fi
-	if [ "$l" == "0" ]; then fore_region_auto; fi
+	if [ ! -d ~/.vff ]; then mkdir ~/.vff; fi
+	case $l in
+		1|2|3|4|5|6) (crontab -l; echo "$time_fore * * * * curl -s -S --insecure http://weather.wii.rc24.xyz/$l/$s/wc24dl.vff --output $path/title/00010002/48414650/data/"wc24dl.vff"") | sort - | uniq - | crontab -; echo 'prevents duplicate cron jobs in the vff downloader' > ~/.vff/vff_fore.txt; news ;;
+	        0) fore_region ;;
+	        *) printf "Invalid selection.\n"; sleep 2; forecast_eur ;;
+	esac
 }
 
 function news {
-clear
-printf "\n$header\n$header2\n\n--- News Channel Configuration ---\n\n0. Japanese\n1. English Europe\n2. German\n3. English USA\n4. French\n5. Italian\n6. Dutch\n7. Spanish\n\n"
-read -p "This time, it's easier. Just choose the region/language for News Channel:" s
+	clear
+	printf "\n$header\n$header2\n\n\
+	--- News Channel Configuration ---\n\n\
+	0. Japanese\n\
+	1. English Europe\n\
+	2. German\n\
+	3. English USA\n\
+	4. French\n\
+	5. Italian\n\
+	6. Dutch\n\
+	7. Spanish\n\n" | fold -s -w "$(tput cols)"
+	read -p "This time, it's easier. Just choose the region/language for News Channel:" s
 
-	if [ "$s" == "0" ]; then (crontab -l; echo "$time_news * * * * curl -s -S --insecure http://news.wii.rc24.xyz/v2/0_Japan/wc24dl.vff --output $path/title/00010002/4841474a/data/"wc24dl.vff"") | sort - | uniq - | crontab -; finish; fi
-	if [ "$s" == "1" ] || [ "$s" == "2" ] || [ "$s" == "5" ] || [ "$s" == "6" ]; then (crontab -l; echo "$time_news * * * * curl -s -S --insecure http://news.wii.rc24.xyz/v2/"$s"_Europe/wc24dl.vff --output $path/title/00010002/48414750/data/"wc24dl.vff"") | sort - | uniq - | crontab -; finish; fi
-	if [ "$s" == "3" ]; then (crontab -l; echo "$time_news * * * * curl -s -S --insecure http://news.wii.rc24.xyz/v2/1_America/wc24dl.vff --output $path/title/00010002/48414745/data/"wc24dl.vff"") | sort - | uniq - | crontab -; finish; fi
-	if [ "$s" == "4" ]; then (crontab -l; echo "$time_news * * * * curl -s -S --insecure http://news.wii.rc24.xyz/v2/3_International/wc24dl.vff --output $path/title/00010002/484147$reg/data/"wc24dl.vff"") | sort - | uniq - | crontab -; finish; fi
-	if [ "$s" == "7" ]; then (crontab -l; echo "$time_news * * * * curl -s -S --insecure http://news.wii.rc24.xyz/v2/4_International/wc24dl.vff --output $path/title/00010002/484147$reg/data/"wc24dl.vff"") | sort - | uniq - | crontab -; finish; fi
+	case $s in 
+		0) (crontab -l; echo "$time_news * * * * curl -s -S --insecure http://news.wii.rc24.xyz/v2/0_Japan/wc24dl.vff --output $path/title/00010002/4841474a/data/"wc24dl.vff"") | sort - | uniq - | crontab -; finish ;;
+		1|2|5|6) (crontab -l; echo "$time_news * * * * curl -s -S --insecure http://news.wii.rc24.xyz/v2/"$s"_Europe/wc24dl.vff --output $path/title/00010002/48414750/data/"wc24dl.vff"") | sort - | uniq - | crontab -; finish ;;
+		3) (crontab -l; echo "$time_news * * * * curl -s -S --insecure http://news.wii.rc24.xyz/v2/1_America/wc24dl.vff --output $path/title/00010002/48414745/data/"wc24dl.vff"") | sort - | uniq - | crontab -; finish ;;
+		4) (crontab -l; echo "$time_news * * * * curl -s -S --insecure http://news.wii.rc24.xyz/v2/3_International/wc24dl.vff --output $path/title/00010002/484147$reg/data/"wc24dl.vff"") | sort - | uniq - | crontab -; finish ;;
+		7) (crontab -l; echo "$time_news * * * * curl -s -S --insecure http://news.wii.rc24.xyz/v2/4_International/wc24dl.vff --output $path/title/00010002/484147$reg/data/"wc24dl.vff"") | sort - | uniq - | crontab -; finish ;;
+	  	*) printf "Invalid selection.\n"; sleep 2; news ;;
+	esac
  }
 
 function finish {
@@ -341,12 +403,12 @@ function finish {
 
 function del_vff {
 	clear
-	printf "\n$header\n$header2\n\nAfter completing this, your computer will no longer download the .Vff files neccsarry for the Wiiconnect24 channels to work. Select the options below to proceed.\n\n1. Delete Forecast and News Channel Files\n\n2. Delete Everybody Vote Channel Files.\n\n3. Delete Everything\n\n4. Exit\n\n"
+	printf "\n$header\n$header2\n\nAfter completing this, your computer will no longer download the .vff files necessary for the WiiConnect24 channels to work. Select the options below to proceed.\n\n1. Delete Forecast and News Channel Files\n\n2. Delete Everybody Vote Channel Files.\n\n3. Delete Everything\n\n4. Exit\n\n"
 	read -p "Choose: " s
 
 	case "$s" in
 		1) crontab -l | grep -v 'curl -s -S --insecure http://weather.wii.rc24.xyz' | crontab -; crontab -l | grep -v 'curl -s -S --insecure http://news.wii.rc24.xyz/v2' | crontab -; rm -rf ~/.vff/vff_fore.txt; del_files_fin ;;
-		2) crontab -l | grep -v 'curl -s -S --insecure https://vt.wii.rc24.xyz/018/wc24dl.vff' | crontab -; rm -rf ~/.vff/vff_evc.txt; del_files_fin ;;
+		2) crontab -l | grep -v 'curl -s -S --insecure https://vt.wii.rc24.xyz' | crontab -; rm -rf ~/.vff/vff_evc.txt; del_files_fin ;;
 		3) crontab -l | grep -v 'curl -s -S --insecure http://weather.wii.rc24.xyz' | crontab -; crontab -l | grep -v 'curl -s -S --insecure http://news.wii.rc24.xyz/v2' | crontab -; crontab -l | grep -v 'curl -s -S --insecure https://vt.wii.rc24.xyz/018/wc24dl.vff' | crontab -; rm -rf ~/.vff/vff_fore.txt; rm -rf ~/.vff/vff_evc.txt; del_files_fin ;;
 		4) exit ;;
 		*) printf "Invalid selection.\n"; sleep 2; del_vff ;;
