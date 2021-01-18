@@ -14,7 +14,12 @@ last_build=2020/12/10
 at=9:45
 header=".VFF Downloader for Dolphin - Created by Noah Pistilli (c) Copyright Noah Pistilli "
 header2="------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------"
-path='~/Library/Application\ Support/Dolphin/Wii'
+
+function path_finder {
+	case "$OSTYPE" in
+		Darwin*) path='~/Library/Application\ Support/Dolphin/Wii'; check_dependencies ;;
+		*) path='~/.local/share/dolphin-emu/Wii'; check_dependencies ;;
+	esac
 
 function check_dependency {
 	if [ -z "$2" ]; then
@@ -45,10 +50,10 @@ function main {
 if [ -e ~/.vff/vff_fore.txt ] || [ -e ~/.vff/vff_evc.txt ]
 then
 	del="3. Delete VFF Downloader files"
-	check_dependencies
+	path_finder
 	main
 else
-	check_dependencies
+	path_finder
 	main
 fi
 
@@ -76,7 +81,7 @@ function number_1 {
 }
 
 function dol_find {
-	if [ ! -d ~/Library/Application\ Support/Dolphin/Wii ]
+	if [ ! -d "$path" ]
 	then
 		clear
 		printf "\n$header\n$header2\n\nEither I was not able to find your Dolphin's Wii NAND Root, or you selected the wrong region. Please select the options below to change the path where your Wii NAND Root is located or go back.\n\n1. Change Path\n2. Back\n\n"
