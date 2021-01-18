@@ -8,6 +8,8 @@ time_fore=$(($RANDOM % 28))
 time_news=$((30 + $RANDOM % 29))
 time_evc=$(($RANDOM % 58))
 
+numbers=(001 010 016 018 020 021 022 025 030 036 040 042 049 052 065 066 067 074 076 077 078 079 082 083 088 094 095 096 097 098 105 107 108 110)
+
 last_build=2020/12/10
 at=9:45
 header=".VFF Downloader for Dolphin - Created by Noah Pistilli (c) Copyright Noah Pistilli "
@@ -153,8 +155,21 @@ function evc_region_select {
 	read -p "Choose: " a
 
 	if [ ! -d ~/.vff ]; then mkdir ~/.vff; fi
-	if [ "$a" == 001 ] || [ "$a" == 010 ] || [ "$a" == 016 ] || [ "$a" == 018 ] || [ "$a" == 020 ] || [ "$a" == 021 ] || [ "$a" == 022 ] || [ "$a" == 025 ] || [ "$a" == 030 ] || [ "$a" == 036 ] || [ "$a" == 040 ] || [ "$a" == 042 ] || [ "$a" == 049 ] || [ "$a" == 052 ] || [ "$a" == 065 ] || [ "$a" == 066 ] || [ "$a" == 067 ] || [ "$a" == 074 ] || [ "$a" == 076 ] || [ "$a" == 077 ] || [ "$a" == 078 ] [ "$a" == 079 ] || [ "$a" == 082 ] || [ "$a" == 083 ] || [ "$a" == 088 ] || [ "$a" == 094 ] || [ "$a" == 095 ] || [ "$a" == 096 ] || [ "$a" == 097 ] || [ "$a" == 098 ] || [ "$a" == 105 ] || [ "$a" == 107 ] || [ "$a" == 108 ] || [ "$a" == 110 ] && [ "$z" == 1 ]; then (crontab -l; echo "$time_evc */6 * * * curl -s -S --insecure https://vt.wii.rc24.xyz/$a/wc24dl.vff --output "$path"/title/00010001/48414a$reg/data/"wc24dl.vff"") | sort - | uniq - | crontab -; echo 'prevents duplicate cron jobs in the vff downloader' > ~/.vff/vff_evc.txt; dupli_prevent_fore; fi
-	if [ "$a" == 001 ] || [ "$a" == 010 ] || [ "$a" == 016 ] || [ "$a" == 018 ] || [ "$a" == 020 ] || [ "$a" == 021 ] || [ "$a" == 022 ] || [ "$a" == 025 ] || [ "$a" == 030 ] || [ "$a" == 036 ] || [ "$a" == 040 ] || [ "$a" == 042 ] || [ "$a" == 049 ] || [ "$a" == 052 ] || [ "$a" == 065 ] || [ "$a" == 066 ] || [ "$a" == 067 ] || [ "$a" == 074 ] || [ "$a" == 076 ] || [ "$a" == 077 ] || [ "$a" == 078 ] [ "$a" == 079 ] || [ "$a" == 082 ] || [ "$a" == 083 ] || [ "$a" == 088 ] || [ "$a" == 094 ] || [ "$a" == 095 ] || [ "$a" == 096 ] || [ "$a" == 097 ] || [ "$a" == 098 ] || [ "$a" == 105 ] || [ "$a" == 107 ] || [ "$a" == 108 ] || [ "$a" == 110 ] && [ "$z" == 3 ]; then (crontab -l; echo "$time_evc */6 * * * curl -s -S --insecure https://vt.wii.rc24.xyz/$a/wc24dl.vff --output "$path"/title/00010001/48414a$reg/data/"wc24dl.vff"") | sort - | uniq - | crontab -; echo 'prevents duplicate cron jobs in the vff downloader' > ~/.vff/vff_evc.txt; finish; fi
+	
+	for i in ${numbers[@]}; do
+      		if [[ ${a#0} -eq ${i#0} ]]; then
+         		(crontab -l; echo "$time_evc */6 * * * curl -s -S --insecure https://vt.wii.rc24.xyz/$i/wc24dl.vff --output "$path"/title/00010001/48414a$reg/data/"wc24dl.vff"") | sort - | uniq - | crontab - 
+			 echo 'prevents duplicate cron jobs in the vff downloader' > ~/.vff/vff_evc.txt
+      		fi
+   	done
+  
+   	if [ $z == 3 ] 
+	then
+		finish
+	else
+		dupli_prevent_fore
+	fi
+ 
  }
 
 function dupli_prevent_fore {
