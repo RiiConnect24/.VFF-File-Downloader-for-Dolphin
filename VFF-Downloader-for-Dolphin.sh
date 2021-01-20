@@ -11,7 +11,7 @@ time_evc=$(($RANDOM % 58))
 numbers=(001 010 016 018 020 021 022 025 030 036 040 042 049 052 065 066 067 074 076 077 078 079 082 083 088 094 095 096 097 098 105 107 108 110)
 
 last_build=2020/01/20
-at=2:37
+at=6:20
 
 header() {
     	clear
@@ -26,7 +26,7 @@ choose() {
 path_finder() {
 	case "$OSTYPE" in
 		darwin*) path='~/Library/Application\ Support/Dolphin/Wii'; check_dependencies ;;
-		linux*) path='~/.local/share/dolphin-emu/Wii'; check_dependencies ;;
+		linux*) path=~/.local/share/dolphin-emu/Wii; check_dependencies ;;
 	esac
 }
 
@@ -101,17 +101,13 @@ dol_find() {
 		unset path
 		case $OSTYPE in
       			darwin*) path=$(grep NANDRootPath ~/Library/Application\ Support/Dolphin/config/dolphin.ini | cut -d ' ' -f 3-10); dol_find2 ;;
-                	linux*) if [[ -z $XDG_CONFIG_HOME ]] 
-                        then 
-            			path=$(grep NANDRootPath $XDG_CONFIG_HOME/dolphin-emu/Dolphin.ini | cut -d ' ' -f 3-10)
-            			dol_find2 
-                        elif [[ -e .config/dolphin-emu/Dolphin.ini ]]
-                        then    
-            			path=$(grep NANDRootPath .config/dolphin-emu/Dolphin.ini | cut -d ' ' -f 3-10)
-                            	dol_find2
-       			else
-            			chg_path 
-                        fi ;;
+                	linux*) if [[ -e .config/dolphin-emu/Dolphin.ini ]]
+                        	then    
+            				path=$(grep NANDRootPath .config/dolphin-emu/Dolphin.ini | cut -d ' ' -f 3-10)
+                            		dol_find2
+       				else
+            				chg_path 
+                       		 fi ;;
 		esac
 	else
 		path=$(sed 's/ /\\ /g' <<< "$path") 
