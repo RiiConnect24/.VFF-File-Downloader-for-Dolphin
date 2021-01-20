@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-version=1.0.1
+version=1.1
 
 printf '\033[8;30;150t'
 
@@ -11,12 +11,12 @@ time_evc=$(($RANDOM % 58))
 numbers=(001 010 016 018 020 021 022 025 030 036 040 042 049 052 065 066 067 074 076 077 078 079 082 083 088 094 095 096 097 098 105 107 108 110)
 
 last_build=2020/01/20
-at=10:20
+at=2:37
 
 header() {
-    clear
-    printf "\033[1m.VFF Downloader for Dolphin - Created by Noah Pistilli (c) Copyright 2021 Noah Pistilli\033[0m\nUpdated on $last_build at $at\n" | fold -s -w "$(tput cols)"
-    printf -- "=%.0s" $(seq "$(tput cols)") && printf "\n\n"
+    	clear
+    	printf "\033[1m.VFF Downloader for Dolphin - Created by Noah Pistilli (c) Copyright 2021 Noah Pistilli\033[0m\nUpdated on $last_build at $at\n" | fold -s -w "$(tput cols)"
+    	printf -- "=%.0s" $(seq "$(tput cols)") && printf "\n\n"
 }
 
 choose() {
@@ -51,10 +51,10 @@ check_dependencies() {
 
 
 main() {
-	 clear
-	 header
-	 printf ".VFF Downloader for Dolphin\n\n1. Start\n2. Quit\n$del\n\nDo you have problems or want to contact us?\nMail us at support@riiconnect24.net or join our Discord Server.\n\n" | fold -s -w "$(tput cols)"
-	 read -p "Choose " p
+	clear
+	header
+	printf ".VFF Downloader for Dolphin\n\n1. Start\n2. Quit\n$del\n\nDo you have problems or want to contact us?\nMail us at support@riiconnect24.net or join our Discord Server.\n\n" | fold -s -w "$(tput cols)"
+	read -p "Choose " p
 }
 
 if [ -e ~/.vff/vff_fore.txt ] || [ -e ~/.vff/vff_evc.txt ]
@@ -89,8 +89,8 @@ number_1() {
 	choose
 
 	case $s in 
-        1) dol_find ;;
-        2) exit ;;
+        	1) dol_find ;;
+        	2) exit ;;
 	esac
 }
 
@@ -120,22 +120,22 @@ dol_find() {
 }
 
 dol_find2() {
-    if [[ ! -d $path ]] 
-    then 
-        chg_path
-    else 
-        path=$(sed 's/ /\\ /g' <<< "$path")
-        sel_download
-    fi 
+    	if [[ ! -d $path ]] 
+    	then 
+        	chg_path
+    	else 
+        	path=$(sed 's/ /\\ /g' <<< "$path")
+        	sel_download
+    	fi 
 }
 
 function chg_path {
-    clear
-    header
-    printf "[*] Change Path\n\nGo into Dolphin, press Config, go to Paths, then copy and paste the path that is in Wii NAND Root here.\n(e.g. ~/Library/Application\ Support/Dolphin/Wii)\n\n"
-    read -p "" path
+    	clear
+    	header
+    	printf "[*] Change Path\n\nGo into Dolphin, press Config, go to Paths, then copy and paste the path that is in Wii NAND Root here.\n(e.g. ~/Library/Application\ Support/Dolphin/Wii)\n\n"
+    	read -p "" path
   
-   dol_find2
+   	dol_find2
 }
 
 
