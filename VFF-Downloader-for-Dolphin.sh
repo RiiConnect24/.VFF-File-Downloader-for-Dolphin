@@ -23,12 +23,11 @@ choose() {
 	read -p "Choose: " s
 }
 
-path_finder() {
-	case "$OSTYPE" in
-		darwin*) path='~/Library/Application\ Support/Dolphin/Wii'; check_dependencies ;;
-		linux*) path=~/.local/share/dolphin-emu/Wii; check_dependencies ;;
-	esac
-}
+case "$OSTYPE" in
+	darwin*) path='~/Library/Application\ Support/Dolphin/Wii'; check_dependencies ;;
+	linux*) path=~/.local/share/dolphin-emu/Wii; check_dependencies ;;
+esac
+
 
 check_dependency() {
 	if [ -z "$2" ]; then
@@ -54,16 +53,14 @@ main() {
 	clear
 	header
 	printf ".VFF Downloader for Dolphin\n\n1. Start\n2. Quit\n$del\n\nDo you have problems or want to contact us?\nMail us at support@riiconnect24.net or join our Discord Server.\n\n" | fold -s -w "$(tput cols)"
-	read -p "Choose " p
+	read -p "Choose: " p
 }
 
 if [ -e ~/.vff/vff_fore.txt ] || [ -e ~/.vff/vff_evc.txt ]
 then
 	del="3. Delete VFF Downloader files"
-	path_finder
 	main
 else
-	path_finder
 	main
 fi
 
@@ -89,8 +86,12 @@ number_1() {
 	choose
 
 	case $s in 
-        	1) dol_find ;;
-        	2) exit ;;
+        	1) dol_find 
+               	   dol_find2
+               	   break
+		   ;;
+        	
+            	2) exit ;;
 	esac
 }
 
@@ -100,18 +101,17 @@ dol_find() {
 		clear
 		unset path
 		case $OSTYPE in
-      			darwin*) path=$(grep NANDRootPath ~/Library/Application\ Support/Dolphin/config/dolphin.ini | cut -d ' ' -f 3-10); dol_find2 ;;
-                	linux*) if [[ -e .config/dolphin-emu/Dolphin.ini ]]
+      			darwin*) path=$(grep NANDRootPath ~/Library/Application\ Support/Dolphin/config/dolphin.ini | cut -d ' ' -f 3-10) ;;
+               		linux*) if [[ -e .config/dolphin-emu/Dolphin.ini ]]
                         	then    
             				path=$(grep NANDRootPath .config/dolphin-emu/Dolphin.ini | cut -d ' ' -f 3-10)
-                            		dol_find2
        				else
             				chg_path 
                        		fi ;;
 		esac
 	else
 		path=$(sed 's/ /\\ /g' <<< "$path") 
-        	sel_download
+        sel_download
 	fi
 }
 
@@ -141,8 +141,29 @@ sel_download() {
 	printf "What are we doing today?\n\n1. Forecast/News/Everybody Votes Channel\n\n2. Forecast/News Channels\n\n3. Everybody Votes Channel\n\n"
 	read -p "Choose: " z
 	
-	if [ "$z" == 1 ] || [ "$z" == 3 ]; then dupli_prevent_evc; fi
-	if [ "$z" == 2 ]; then dupli_prevent_fore; fi
+	case $z in
+        1) dupli_prevent_evc
+           evc_find
+           evc_region_select  
+           dupli_prevent_fore
+           fore_region
+           news
+           finish
+           break
+           ;;
+        2) dupli_prevent_fore
+           fore_region
+           news
+           finish
+           break
+           ;;
+        3) dupli_prevent_evc
+           evc_find
+           evc_region_select 
+           finish
+           break
+           ;;
+    	esac
 }
 
 dupli_prevent_evc() {
@@ -152,8 +173,6 @@ dupli_prevent_evc() {
 		header
 		printf "You have already used this script. To prevent duplicate crontabs from being created, we are exiting the script for you.\n\n" 
 		exit
-	else
-		evc_find
 	fi
 }
 
@@ -162,10 +181,9 @@ evc_find() {
 	if [ ! -d $path/title/00010001/48414a$reg ]
 	then
 		header
-		printf "I could not find the Everybody Votes Channel on your computer. We will be bringing you back to the selection screen. Please download EVC and try again.\n; sleep 4; sel_download" | fold -s -w "$(tput cols)"
-	else
-		evc_region_select
-	fi
+		printf "I could not find the Everybody Votes Channel on your computer. We will be bringing you back to the selection screen. Please download EVC and try again.\n"; sleep 4; sel_download | fold -s -w "$(tput cols)"
+        exit
+    fi
 }
 
 evc_region_select() {
@@ -200,13 +218,6 @@ evc_region_select() {
 			 echo 'prevents duplicate cron jobs in the vff downloader' > ~/.vff/vff_evc.txt
       		fi
    	done
-  
-   	if [ $z == 3 ]; then
-		finish
-	else
-		dupli_prevent_fore
-	fi
- 
  }
 
 dupli_prevent_fore() {
@@ -216,9 +227,7 @@ dupli_prevent_fore() {
 		header
 		printf "You have already used this script. To prevent duplicate crontabs from being created, we are exiting the script for you.\n\n"
 		exit
-	else
-		fore_region 
-	fi
+    fi
 }
 
 fore_region() {
@@ -380,8 +389,8 @@ forecast_jpn() {
 
 	if [ ! -d ~/.vff ]; then mkdir ~/.vff; fi
 	case $s in
-		1) (crontab -l; echo "$time_fore * * * * curl -s -S --insecure http://weather.wii.rc24.xyz/0/001/wc24dl.vff --output $path/title/00010002/4841465a/data/"wc24dl.vff"") | sort - | uniq - | crontab -; echo 'prevents duplicate cron jobs in the vff downloader' > ~/.vff/vff_fore.txt; news ;;
-	        2) fore_region ;;
+		1) (crontab -l; echo "$time_fore * * * * curl -s -S --insecure http://weather.wii.rc24.xyz/0/001/wc24dl.vff --output $path/title/00010002/4841465a/data/"wc24dl.vff"") | sort - | uniq - | crontab -; echo 'prevents duplicate cron jobs in the vff downloader' > ~/.vff/vff_fore.txt ;;
+	    2) fore_region ;;
 		*) printf "Invalid selection.\n"; sleep 2; forecast_jpn ;;
     esac
 }
@@ -399,7 +408,7 @@ forecast_ntsc() {
 
 	if [ ! -d ~/.vff ]; then mkdir ~/.vff; fi
 	case $l in 
-		1|3|4) (crontab -l; echo "$time_fore * * * * curl -s -S --insecure http://weather.wii.rc24.xyz/$l/$s/wc24dl.vff --output "$path"/title/00010002/48414645/data/"wc24dl.vff"") | sort - | uniq - | crontab -; echo 'prevents duplicate cron jobs in the vff downloader' > ~/.vff/vff_fore.txt; news ;;
+		1|3|4) (crontab -l; echo "$time_fore * * * * curl -s -S --insecure http://weather.wii.rc24.xyz/$l/$s/wc24dl.vff --output "$path"/title/00010002/48414645/data/"wc24dl.vff"") | sort - | uniq - | crontab -; echo 'prevents duplicate cron jobs in the vff downloader' > ~/.vff/vff_fore.txt ;;
 		0) fore_region ;;
 		*) printf "Invalid selection.\n"; sleep 2; forecast_ntsc ;;
 	esac
@@ -422,9 +431,9 @@ forecast_eur() {
 
 	if [ ! -d ~/.vff ]; then mkdir ~/.vff; fi
 	case $l in
-		1|2|3|4|5|6) (crontab -l; echo "$time_fore * * * * curl -s -S --insecure http://weather.wii.rc24.xyz/$l/$s/wc24dl.vff --output $path/title/00010002/48414650/data/"wc24dl.vff"") | sort - | uniq - | crontab -; echo 'prevents duplicate cron jobs in the vff downloader' > ~/.vff/vff_fore.txt; news ;;
-	        0) fore_region ;;
-	        *) printf "Invalid selection.\n"; sleep 2; forecast_eur ;;
+		1|2|3|4|5|6) (crontab -l; echo "$time_fore * * * * curl -s -S --insecure http://weather.wii.rc24.xyz/$l/$s/wc24dl.vff --output $path/title/00010002/48414650/data/"wc24dl.vff"") | sort - | uniq - | crontab -; echo 'prevents duplicate cron jobs in the vff downloader' > ~/.vff/vff_fore.txt ;;
+	    0) fore_region ;;
+	    *) printf "Invalid selection.\n"; sleep 2; forecast_eur ;;
 	esac
 }
 
@@ -443,11 +452,11 @@ news() {
 	read -p "This time, it's easier. Just choose the region/language for News Channel: " s
 
 	case $s in 
-		0) (crontab -l; echo "$time_news * * * * curl -s -S --insecure http://news.wii.rc24.xyz/v2/0_Japan/wc24dl.vff --output $path/title/00010002/4841474a/data/"wc24dl.vff"") | sort - | uniq - | crontab -; finish ;;
-		1|2|5|6) (crontab -l; echo "$time_news * * * * curl -s -S --insecure http://news.wii.rc24.xyz/v2/"$s"_Europe/wc24dl.vff --output $path/title/00010002/48414750/data/"wc24dl.vff"") | sort - | uniq - | crontab -; finish ;;
-		3) (crontab -l; echo "$time_news * * * * curl -s -S --insecure http://news.wii.rc24.xyz/v2/1_America/wc24dl.vff --output $path/title/00010002/48414745/data/"wc24dl.vff"") | sort - | uniq - | crontab -; finish ;;
-		4) (crontab -l; echo "$time_news * * * * curl -s -S --insecure http://news.wii.rc24.xyz/v2/3_International/wc24dl.vff --output $path/title/00010002/484147$reg/data/"wc24dl.vff"") | sort - | uniq - | crontab -; finish ;;
-		7) (crontab -l; echo "$time_news * * * * curl -s -S --insecure http://news.wii.rc24.xyz/v2/4_International/wc24dl.vff --output $path/title/00010002/484147$reg/data/"wc24dl.vff"") | sort - | uniq - | crontab -; finish ;;
+		0) (crontab -l; echo "$time_news * * * * curl -s -S --insecure http://news.wii.rc24.xyz/v2/0_Japan/wc24dl.vff --output $path/title/00010002/4841474a/data/"wc24dl.vff"") | sort - | uniq - | crontab - ;;
+		1|2|5|6) (crontab -l; echo "$time_news * * * * curl -s -S --insecure http://news.wii.rc24.xyz/v2/"$s"_Europe/wc24dl.vff --output $path/title/00010002/48414750/data/"wc24dl.vff"") | sort - | uniq - | crontab - ;;
+		3) (crontab -l; echo "$time_news * * * * curl -s -S --insecure http://news.wii.rc24.xyz/v2/1_America/wc24dl.vff --output $path/title/00010002/48414745/data/"wc24dl.vff"") | sort - | uniq - | crontab - ;;
+		4) (crontab -l; echo "$time_news * * * * curl -s -S --insecure http://news.wii.rc24.xyz/v2/3_International/wc24dl.vff --output $path/title/00010002/484147$reg/data/"wc24dl.vff"") | sort - | uniq - | crontab - ;;
+		7) (crontab -l; echo "$time_news * * * * curl -s -S --insecure http://news.wii.rc24.xyz/v2/4_International/wc24dl.vff --output $path/title/00010002/484147$reg/data/"wc24dl.vff"") | sort - | uniq - | crontab - ;;
 	  	*) printf "Invalid selection.\n"; sleep 2; news ;;
 	esac
  }
