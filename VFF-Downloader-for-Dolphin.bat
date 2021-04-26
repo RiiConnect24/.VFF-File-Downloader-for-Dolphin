@@ -38,13 +38,13 @@ setlocal enableDelayedExpansion
 cd /d "%~dp0"
 :: ===========================================================================
 :: .VFF File Downloader for Dolphin - main script
-set version=1.0.7.2
+set version=1.0.8
 :: AUTHORS: KcrPL
 :: ***************************************************************************
 :: Copyright (c) 2020 KcrPL, RiiConnect24 and it's (Lead) Developers
 :: ===========================================================================
-set last_build=2020/08/08
-set at=21:37
+set last_build=2021/04/27
+set at=00:50
 :: Unattended mode
 :: This script is meant to be running in the background.
 if exist update_assistant.bat del /q update_assistant.bat
@@ -75,7 +75,7 @@ if "%1"=="-run_once" set /a run_once=1
 ::
 set /a Update_Activate=1
 set /a offlinestorage=0
-set FilesHostedOn=https://kcrpl.github.io/Patchers_Auto_Update/VFF-Downloader-for-Dolphin
+set FilesHostedOn=https://patcher.rc24.xyz/update/VFF-Downloader-for-Dolphin/v1
 
 set MainFolder=%appdata%\VFF-Downloader-for-Dolphin
 set TempStorage=%appdata%\VFF-Downloader-for-Dolphin\internet\temp
@@ -161,8 +161,8 @@ if %Update_Activate%==1 if %updateavailable%==1 goto run_update
 
 goto read_config
 :run_update
-if %alternative_curl%==0 curl -s -S --insecure "https://kcrPL.github.io/Patchers_Auto_Update/RiiConnect24Patcher/UPDATE/update_assistant.bat" --output "update_assistant.bat"
-if %alternative_curl%==1 %alternative_curl_path% -s -S --insecure "https://kcrPL.github.io/Patchers_Auto_Update/RiiConnect24Patcher/UPDATE/update_assistant.bat" --output "update_assistant.bat"
+if %alternative_curl%==0 curl -s -S --insecure "https://patcher.rc24.xyz/update/RiiConnect24-Patcher/v1/UPDATE/update_assistant.bat" --output "update_assistant.bat"
+if %alternative_curl%==1 %alternative_curl_path% -s -S --insecure "https://patcher.rc24.xyz/update/RiiConnect24-Patcher/v1/UPDATE/update_assistant.bat" --output "update_assistant.bat"
 	set temperrorlev=%errorlevel%
 	if not %temperrorlev%==0 goto error_updating
 start "" update_assistant.bat -VFF_Downloader_Main_Exec
@@ -214,7 +214,7 @@ echo 	^& "Everybody Votes Channel funtionality will be disabled until you config
 echo If intMessage = vbYes Then>>"%appdata%\warning.vbs"
 echo 	dim xHttp: Set xHttp = createobject("Microsoft.XMLHTTP")>>"%appdata%\warning.vbs"
 echo 	dim bStrm: Set bStrm = createobject("Adodb.Stream")>>"%appdata%\warning.vbs"
-echo 	xHttp.Open "GET", "https://kcrPL.github.io/Patchers_Auto_Update/RiiConnect24Patcher/UPDATE/update_assistant.bat", False>>"%appdata%\warning.vbs"
+echo 	xHttp.Open "GET", "https://patcher.rc24.xyz/update/RiiConnect24-Patcher/v1/UPDATE/update_assistant.bat", False>>"%appdata%\warning.vbs"
 echo 	xHttp.Send>>"%appdata%\warning.vbs"
 echo.>>"%appdata%\warning.vbs"
 echo 	with bStrm>>"%appdata%\warning.vbs"

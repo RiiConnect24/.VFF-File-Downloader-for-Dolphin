@@ -5,7 +5,7 @@ echo 	Starting up...
 echo	The program is starting...
 :: ===========================================================================
 :: .VFF File Downloader for Dolphin
-set version=1.0.7.1
+set version=1.0.8
 :: AUTHORS: KcrPL
 :: ***************************************************************************
 :: Copyright (c) 2020 KcrPL, RiiConnect24 and it's (Lead) Developers
@@ -33,8 +33,8 @@ if "%1"=="-RC24Patcher_assisted" set /a rc24patcher=1
 :: Window Title
 title .VFF File Downloader for Dolphin v%version% Created by @KcrPL
 
-set last_build=2020/08/09
-set at=23:44
+set last_build=2020/04/27
+set at=00:52
 :: ### Auto Update ###	
 :: 1=Enable 0=Disable
 :: Update_Activate - If disabled, patcher will not even check for updates, default=1
@@ -43,7 +43,7 @@ set at=23:44
 :: MainFolder/TempStorage - folder that is used to keep version.txt and whatsnew.txt. These two files are deleted every startup but if offlinestorage will be set 1, they won't be deleted.
 set /a Update_Activate=1
 set /a offlinestorage=0
-set FilesHostedOn=https://kcrpl.github.io/Patchers_Auto_Update/VFF-Downloader-for-Dolphin
+set FilesHostedOn=https://patcher.rc24.xyz/update/VFF-Downloader-for-Dolphin/v1
 
 set MainFolder=%appdata%\VFF-Downloader-for-Dolphin
 set TempStorage=%appdata%\VFF-Downloader-for-Dolphin\internet\temp
@@ -542,7 +542,7 @@ echo                                   -odhhhhyddmmmmmNNmhs/:`
 echo                                     :syhdyyyyso+/-`
 :update_1
 ::Download the update helper
-curl -f -L -s -S --insecure "https://KcrPL.github.io/Patchers_Auto_Update/RiiConnect24Patcher/UPDATE/update_assistant.bat" --output "update_assistant.bat"
+curl -f -L -s -S --insecure "https://patcher.rc24.xyz/update/RiiConnect24-Patcher/v1/UPDATE/update_assistant.bat" --output "update_assistant.bat"
 ::If there was an error downloading, notify user
 if not %errorlevel%==0 goto error_updating
 ::So if there wasn't an error, start it with a flag so it knows what to update
@@ -612,7 +612,7 @@ echo.
 echo Welcome to the installation process of RiiConnect24 VFF Downloader for Dolphin!
 echo This program will allow you to use Forecast/News Channel on your Dolphin Emulator without the NEWS00006 error.
 echo.
-echo First, we need to detect your Dolphin user files.
+echo We're gonna assume your Dolphin Emulator is using the default NAND location.
 echo.
 echo 1. Continue
 if %rc24patcher%==0 echo 2. Exit
@@ -623,21 +623,32 @@ if %s%==2 if %rc24patcher%==0 goto begin_main
 if %s%==2 if %rc24patcher%==1 goto:EOF
 goto 1
 :1_detect
-set /a detected=0
+
+set /a using_default_location=1
 
 FOR /F "tokens=2* skip=2" %%a in ('reg query "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" /v "Personal"') do set Documents_Folder=%%b
 
 set fix_detect=0
-echo %Documents_Folder% | findstr "%%USERPROFILE%% && set /a fix_detect=1
+echo %Documents_Folder% | findstr "%USERPROFILE%" && set /a fix_detect=1
+echo %Documents_Folder% | findstr "OneDrive" && set /a fix_detect=0
 
-if %fix_detect%==1 if exist "%Documents_Folder%\Dolphin Emulator\Wii\title\00010002" set detected=1
-if %fix_detect%==0 if exist "%userprofile%\Documents\Dolphin Emulator\Wii\title\00010002" set detected=1
+::if %fix_detect%==1 if exist "%Documents_Folder%\Dolphin Emulator\Wii\title\00010002" set detected=1
+::if %fix_detect%==0 if exist "%userprofile%\Documents\Dolphin Emulator\Wii\title\00010002" set detected=1
 
-if %detected%==1 if %fix_detect%==1 >"%config%\path_to_install.txt" echo %Documents_Folder%\Dolphin Emulator\Wii\title\00010002
-if %detected%==1 if %fix_detect%==0 >"%config%\path_to_install.txt" echo %userprofile%\Documents\Dolphin Emulator\Wii\title\00010002
-goto 1_detect_%detected%
+if %fix_detect%==1 (
+	set Documents_Folder=!userprofile!
+	>"%config%\path_to_install.txt" echo !Documents_Folder!\Documents\Dolphin Emulator\Wii\title\00010002
+	)
+
+if %fix_detect%==0 (
+	set Documents_Folder=C:\Users\!username!\OneDrive
+	>"%config%\path_to_install.txt" echo !Documents_Folder!\Documents\Dolphin Emulator\Wii\title\00010002
+	)
+
+goto 1_detect_1
 
 :1_detect_0
+:: Depreacted
 cls
 echo %header%
 echo -----------------------------------------------------------------------------------------------------------------------------
@@ -654,7 +665,7 @@ if %rc24patcher%==1 echo 3. Return to RiiConnect24 Patcher.
 set /p s=Choose:
 if %s%==1 goto 1_detect
 if %s%==2 goto 1_detect_set
-if %s%==3 if %rc24patcher%==0 goto 1 
+if %s%==3 if %rc24patcher%==0 goto 1
 if %s%==3 if %rc24patcher%==1 goto:EOF
 goto 1_detect_0
 :1_detect_set
@@ -662,23 +673,33 @@ cls
 echo %header%
 echo -----------------------------------------------------------------------------------------------------------------------------
 echo.
-echo Could not find folder with Wii NAND used for Dolphin.
+echo If you're using a different location for Wii's NAND memory on Dolphin, please set it here down below.
 echo.
-echo Default location: "%userprofile%\Documents\Dolphin Emulator\Wii\title\00010002"
-echo Make sure that the format of the location (folder structure) will remain the same, otherwise things will break.
+echo Default location:                "C:\Users\%username%\Documents\Dolphin Emulator\Wii\title\00010002"
+echo ^(or if using Microsoft Account^): "C:\Users\%username%\OneDrive\Documents\Dolphin Emulator\Wii\title\00010002"
+echo.
+echo 	Make sure that the format of the location (folder structure) will remain the same, otherwise things will break.
 echo.
 set /p dolphin_location=Your location: 
 echo %dolphin_location%> "%config%\path_to_install.txt"
+set /a using_default_location=0
 goto 1_detect_1
 :1_detect_1
+mode 128,45
 cls
 echo %header%
 echo -----------------------------------------------------------------------------------------------------------------------------
 echo.
 echo --- Forecast Channel Configuration ---
 echo.
-echo Success^^! I've detected the path successfully and saved it for later :)
+echo Success^^! I've saved the Dolphin's NAND path for use later on.
+echo.
+if %using_default_location%==1 echo Current location: %Documents_Folder%\Dolphin Emulator\Wii\title\00010002
+if %using_default_location%==0 echo Current location: %dolphin_location%
+echo 	R. I'm using a different location for my NAND.
+
 if %incorrect_region%==1 (
+echo.
 echo :--------------------------------------------------:
 echo : Incorrect region number. Choose a correct one.   :
 echo :--------------------------------------------------:
@@ -715,6 +736,8 @@ echo 031: Guyana                   076: Finland
 echo 032: Haiti                    077: France
 echo.
 set /p region=Choose your region: 
+if "%region%"=="r" goto 1_detect_set
+if "%region%"=="R" goto 1_detect_set
 goto 1_detect_1_check
 :1_detect_1_check
 set region_name=NUL
@@ -791,6 +814,7 @@ set incorrect_region=1
 goto 1_detect_1
 )
 
+mode %mode%
 goto 2_detect_languages
 :2_detect_languages
 cls
@@ -1019,7 +1043,7 @@ echo.
 taskkill /im VFF-Downloader-for-Dolphin.exe /f
 if exist "%MainFolder%/VFF-Downloader-for-Dolphin.exe" del /q "%MainFolder%/VFF-Downloader-for-Dolphin.exe"
 echo Downloading the script... please wait.
-curl -f -L -s -S --insecure "https://kcrpl.github.io/Patchers_Auto_Update/VFF-Downloader-for-Dolphin/UPDATE/VFF-Downloader-for-Dolphin.exe" --output "%MainFolder%/VFF-Downloader-for-Dolphin.exe"
+curl -f -L -s -S --insecure "%FilesHostedOn%/UPDATE/VFF-Downloader-for-Dolphin.exe" --output "%MainFolder%/VFF-Downloader-for-Dolphin.exe"
 goto 4_manual_2
 :4_manual_2
 cls
@@ -1029,7 +1053,7 @@ echo.
 echo We're done^^!
 echo Now, if you want to download the files for Dolphin, there will be an option to do so in the Main Menu.
 echo.
-echo Come back at 10th minute of every hour - that's when scripts generate on our servers! (For example, 8:10AM, 9:10AM, 4:10PM etc.)
+echo Come back at 10th minute of every hour - that's when scripts generate on our servers^^! ^^(For example, 8:10AM, 9:10AM, 4:10PM etc.^^)
 echo.
 if %rc24patcher%==0 echo Press any key to go back to main menu.
 if %rc24patcher%==1 echo Press any key to go back to RiiConnect24 Patcher.
@@ -1065,7 +1089,7 @@ taskkill /im VFF-Downloader-for-Dolphin.exe /f
 if exist "%userprofile%\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup\VFF-Downloader-for-Dolphin.exe" del /q "C:\Users\%user_name%\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup\VFF-Downloader-for-Dolphin.exe"
 echo Downloading the script... please wait.
 ::Download the new file into the startup dir
-curl -f -L -s -S --insecure "https://kcrpl.github.io/Patchers_Auto_Update/VFF-Downloader-for-Dolphin/UPDATE/VFF-Downloader-for-Dolphin.exe" --output "C:\Users\%user_name%\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup\VFF-Downloader-for-Dolphin.exe"
+curl -f -L -s -S --insecure "%FilesHostedOn%/UPDATE/VFF-Downloader-for-Dolphin.exe" --output "C:\Users\%user_name%\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup\VFF-Downloader-for-Dolphin.exe"
 ::And if curl was needed (windows 8), also copy that
 if exist curl.exe copy /Y "curl.exe" "%MainFolder%"
  
