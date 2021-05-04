@@ -38,13 +38,13 @@ setlocal enableDelayedExpansion
 cd /d "%~dp0"
 :: ===========================================================================
 :: .VFF File Downloader for Dolphin - main script
-set version=1.0.8
+set version=1.0.9
 :: AUTHORS: KcrPL
 :: ***************************************************************************
 :: Copyright (c) 2020 KcrPL, RiiConnect24 and it's (Lead) Developers
 :: ===========================================================================
-set last_build=2021/04/27
-set at=00:50
+set last_build=2021/05/04
+set at=21:44
 :: Unattended mode
 :: This script is meant to be running in the background.
 if exist update_assistant.bat del /q update_assistant.bat
@@ -195,46 +195,8 @@ set forecast_language=%templanguage:~9,1%
 set /p news_region=<"%config%\news_region.txt"
 set /p evc_country_code=<"%config%\evc_country_code.txt"
 
-	if "%evc_country_code%"=="0" goto show_info_evc_update
-
 set /p dolphin_installation=<"%config%\path_to_install.txt".
 goto download_files
-
-:show_info_evc_update
-echo --- [%time:~0,8%] Displaying EVC Update Info ---
-
-echo Set objShell = CreateObject("Wscript.Shell")>"%appdata%\warning.vbs"	
-echo intMessage = MsgBox("We've updated the program^!" ^& vbCr _>>"%appdata%\warning.vbs" 
-echo 	^& vbCr _ >>"%appdata%\warning.vbs"
-echo 	^& "We now support Everybody Votes Channel." ^& vbCr _ >>"%appdata%\warning.vbs"
-echo 	^& vbCr _>>"%appdata%\warning.vbs"
-echo 	^& "Pressing Yes will open Install.bat" ^& vbCr _>>"%appdata%\warning.vbs"
-echo 	^& vbCr _>>"%appdata%\warning.vbs"
-echo 	^& "Everybody Votes Channel funtionality will be disabled until you configure the program.",4,"RiiConnect24 .VFF Downloader for Dolphin")>>"%appdata%\warning.vbs"
-echo If intMessage = vbYes Then>>"%appdata%\warning.vbs"
-echo 	dim xHttp: Set xHttp = createobject("Microsoft.XMLHTTP")>>"%appdata%\warning.vbs"
-echo 	dim bStrm: Set bStrm = createobject("Adodb.Stream")>>"%appdata%\warning.vbs"
-echo 	xHttp.Open "GET", "https://patcher.rc24.xyz/update/RiiConnect24-Patcher/v1/UPDATE/update_assistant.bat", False>>"%appdata%\warning.vbs"
-echo 	xHttp.Send>>"%appdata%\warning.vbs"
-echo.>>"%appdata%\warning.vbs"
-echo 	with bStrm>>"%appdata%\warning.vbs"
-echo 		.type = 1 '//binary>>"%appdata%\warning.vbs"
-echo 		.open>>"%appdata%\warning.vbs"
-echo 		.write xHttp.responseBody>>"%appdata%\warning.vbs"
-echo 		.savetofile "update_assistant.bat", 2 '//overwrite>>"%appdata%\warning.vbs"
-echo 		objShell.Run ("update_assistant.bat -VFF_Downloader_Installer")>>"%appdata%\warning.vbs"
-echo.>>"%appdata%\warning.vbs"
-echo end with>>"%appdata%\warning.vbs"
-echo.>>"%appdata%\warning.vbs"
-echo Else>>"%appdata%\warning.vbs"
-echo Wscript.Quit>>"%appdata%\warning.vbs"
-echo End If>>"%appdata%\warning.vbs"
-
->"%config%\evc_country_code.txt" echo 1
-start "" "%appdata%\warning.vbs"
-del "%config%\warning.vbs"
-
-goto read_config
 
 :waiting_for_internet
 echo No internet connection/could not connect to remote host.
