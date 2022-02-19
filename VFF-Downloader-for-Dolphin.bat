@@ -1,50 +1,16 @@
-::[Bat To Exe Converter]
-::
-::YAwzoRdxOk+EWAnk
-::fBw5plQjdG8=
-::YAwzuBVtJxjWCl3EqQJgSA==
-::ZR4luwNxJguZRRnk
-::Yhs/ulQjdF+5
-::cxAkpRVqdFKZSTk=
-::cBs/ulQjdF+5
-::ZR41oxFsdFKZSDk=
-::eBoioBt6dFKZSDk=
-::cRo6pxp7LAbNWATEpCI=
-::egkzugNsPRvcWATEpCI=
-::dAsiuh18IRvcCxnZtBJQ
-::cRYluBh/LU+EWAnk
-::YxY4rhs+aU+JeA==
-::cxY6rQJ7JhzQF1fEqQJQ
-::ZQ05rAF9IBncCkqN+0xwdVs0
-::ZQ05rAF9IAHYFVzEqQJQ
-::eg0/rx1wNQPfEVWB+kM9LVsJDGQ=
-::fBEirQZwNQPfEVWB+kM9LVsJDGQ=
-::cRolqwZ3JBvQF1fEqQJQ
-::dhA7uBVwLU+EWDk=
-::YQ03rBFzNR3SWATElA==
-::dhAmsQZ3MwfNWATElA==
-::ZQ0/vhVqMQ3MEVWAtB9wSA==
-::Zg8zqx1/OA3MEVWAtB9wSA==
-::dhA7pRFwIByZRRnk
-::Zh4grVQjdCuDJH6N4GolKidfTxaSMCW9D6EU/eq15uW7kkwJV+o6apzk+6GaL98m+kHlYZMR4Fx81e8DGxVUcROvax15r2FQ+0CKO9eUugHdf3itx38VJ1NSoS70gzw1bNxpnsYRniax7gDbkKkA2XHxEKwWEAM=
-::YB416Ek+ZG8=
-::
-::
-::978f952a14a936cc963da21a135fa983
-
 @echo off
 setlocal enableextensions
 setlocal enableDelayedExpansion
 cd /d "%~dp0"
 :: ===========================================================================
 :: .VFF File Downloader for Dolphin - main script
-set version=1.0.9
+set version=1.1.0
 :: AUTHORS: KcrPL
 :: ***************************************************************************
-:: Copyright (c) 2020 KcrPL, RiiConnect24 and it's (Lead) Developers
+:: Copyright (c) 2020-2022 KcrPL, RiiConnect24 and it's (Lead) Developers
 :: ===========================================================================
-set last_build=2021/05/04
-set at=21:44
+set last_build=2022/02/19
+set at=23:59
 :: Unattended mode
 :: This script is meant to be running in the background.
 if exist update_assistant.bat del /q update_assistant.bat
@@ -87,44 +53,71 @@ echo %header%
 echo ---------------------------------------------------------------------------------------
 echo.
 
+goto startup_wait
+
+:startup_wait
+if %run_once%==1 goto check_for_update
+echo --- [%date%] [%time:~0,8%] The program is probably sitting in the background as startup. 
+echo                Waiting 30 seconds to free CPU resources and continuing. 
+echo                If you can see this, pressing any key will skip the 30 seconds wait time.
+call "%windir%\system32\timeout.exe" 30 >NUL
+
 goto check_for_internet
 
 :no_internet_wait
-echo --- [%time:~0,8%] Error while checking for internet connection - waiting 3 minutes and trying again ---
+echo --- [%date%] [%time:~0,8%] Error while checking for internet connection - waiting 3 minutes and trying again ---
 call "%windir%\system32\timeout.exe" 180>NUL
 
 goto check_for_internet
 :check_for_internet
-echo --- [%time:~0,8%] Checking for Internet connection... ---
+echo --- [%date%] [%time:~0,8%] Checking for Internet connection... ---
 curl -s http://www.msftncsi.com/ncsi.txt>NUL
 if not %errorlevel%==0 goto no_internet_wait
 echo                .
 echo                .
 echo                .: OK^^!
-goto startup_wait
-
-
-:startup_wait
-if %run_once%==1 goto check_for_update
-echo --- [%time:~0,8%] The program is probably sitting in the background as startup. 
-echo                Waiting 30 seconds to free CPU resources and continuing. 
-echo                If you can see this, pressing any key will skip the 30 seconds wait time.
-call "%windir%\system32\timeout.exe" 30 >NUL
-
+call :check_rc24_connection
+	if %errorlevel%==1 goto server_dead
 goto check_for_update
+:check_rc24_connection
+echo.
+echo --- [%date%] [%time:~0,8%] Checking connection to RiiConnect24... ---
+For /F "Delims=" %%A In ('call curl -f -L -s --user-agent "VFF-Downloader-for-Dolphin v%version%" --insecure "https://patcher.rc24.xyz/connection_test.txt"') do set "connection_test=%%A"
+
+	if not "%connection_test%"=="OK" exit /b 1
+
+set ip_to_ping=patcher.rc24.xyz
+for /F "tokens=1-9 delims==< " %%a in ('PING -n 1 -w 2500 %ip_to_ping%') do if "%%h"=="TTL" set network_latency=%%g
+echo                .
+echo                .
+echo                .: OK^^! (%network_latency%)
+
+exit /b 0
+
+:server_dead
+echo                .
+echo                .
+echo                .: Error^^! RiiConnect24 is currently under maintenance or unavailable.
+echo                          Continuing to try, please be patient.
+echo                          Check https://status.rc24.xyz for details.
+echo.
+echo --- [%date%] [%time:~0,8%] Waiting 180 seconds (3 minutes) ---
+call "%windir%\system32\timeout.exe" 180 >NUL
+goto check_for_internet
+
+
 :error_no_work_folder
 echo x=MsgBox("There was an error while reading configuration files. Please run Install.bat and reconfigure the program. The program will now exit.",16,"RiiConnect24 .VFF Downloader for Dolphin")>"%appdata%\warning.vbs"
 start "" "%appdata%\warning.vbs"
 del "%config%\warning.vbs"
 exit
 :check_for_update
-:: For whatever reason, it returns 2
 echo.
-curl
-if not %errorlevel%==2 set /a alternative_curl=1
+curl -s ""
+if not %errorlevel%==3 set /a alternative_curl=1
 
 
-echo --- [%time:~0,8%] First update check ---
+echo --- [%date%] [%time:~0,8%] First update check ---
 
 :: Update script.
 set updateversion=0.0.0
@@ -134,18 +127,15 @@ if %offlinestorage%==0 if exist "%TempStorage%\whatsnew.txt" del "%TempStorage%\
 
 if not exist "%TempStorage%" goto error_no_work_folder
 :: Commands to download files from server.
-
-if %Update_Activate%==1 if %offlinestorage%==0 if %alternative_curl%==0 call curl -s -S --insecure "%FilesHostedOn%/UPDATE/whatsnew_vff_downloader.txt" --output "%TempStorage%\whatsnew.txt"
-if %Update_Activate%==1 if %offlinestorage%==0 if %alternative_curl%==0 call curl -s -S --insecure "%FilesHostedOn%/UPDATE/version_vff_downloader.txt" --output "%TempStorage%\version.txt"
-if %Update_Activate%==1 if %offlinestorage%==0 if %alternative_curl%==1 call %alternative_curl_path% -s -S --insecure "%FilesHostedOn%/UPDATE/whatsnew_vff_downloader.txt" --output "%TempStorage%\whatsnew.txt"
-if %Update_Activate%==1 if %offlinestorage%==0 if %alternative_curl%==1 call %alternative_curl_path% -s -S --insecure "%FilesHostedOn%/UPDATE/version_vff_downloader.txt" --output "%TempStorage%\version.txt"
+if %Update_Activate%==1 if %offlinestorage%==0 if %alternative_curl%==0 call curl -s -S --user-agent "VFF-Downloader-for-Dolphin v%version%" --insecure "%FilesHostedOn%/UPDATE/whatsnew_vff_downloader.txt" --output "%TempStorage%\whatsnew.txt"
+if %Update_Activate%==1 if %offlinestorage%==0 if %alternative_curl%==0 call curl -s -S --user-agent "VFF-Downloader-for-Dolphin v%version%" --insecure "%FilesHostedOn%/UPDATE/version_vff_downloader.txt" --output "%TempStorage%\version.txt"
+if %Update_Activate%==1 if %offlinestorage%==0 if %alternative_curl%==1 call %alternative_curl_path% -s -S --user-agent "VFF-Downloader-for-Dolphin v%version%" --insecure "%FilesHostedOn%/UPDATE/whatsnew_vff_downloader.txt" --output "%TempStorage%\whatsnew.txt"
+if %Update_Activate%==1 if %offlinestorage%==0 if %alternative_curl%==1 call %alternative_curl_path% -s -S --user-agent "VFF-Downloader-for-Dolphin v%version%" --insecure "%FilesHostedOn%/UPDATE/version_vff_downloader.txt" --output "%TempStorage%\version.txt"
 	set /a temperrorlev=%errorlevel%
-	
 set /a updateserver=1
 	::Bind exit codes to errors here
 	if "%temperrorlev%"=="6" goto no_internet_connection
 	if not %temperrorlev%==0 set /a updateserver=0
-
 if exist "%TempStorage%\version.txt`" ren "%TempStorage%\version.txt`" "version.txt"
 if exist "%TempStorage%\whatsnew.txt`" ren "%TempStorage%\whatsnew.txt`" "whatsnew.txt"
 :: Copy the content of version.txt to variable.
@@ -155,17 +145,18 @@ if %Update_Activate%==1 if exist "%TempStorage%\version.txt" set /a updateavaila
 :: If version.txt doesn't match the version variable stored in this batch file, it means that update is available.
 if %updateversion%==%version% set /a updateavailable=0
 
-
 if %Update_Activate%==1 if %updateavailable%==1 set /a updateserver=2
 if %Update_Activate%==1 if %updateavailable%==1 goto run_update
 
 goto read_config
 :run_update
-if %alternative_curl%==0 curl -s -S --insecure "https://patcher.rc24.xyz/update/RiiConnect24-Patcher/v1/UPDATE/update_assistant.bat" --output "update_assistant.bat"
-if %alternative_curl%==1 %alternative_curl_path% -s -S --insecure "https://patcher.rc24.xyz/update/RiiConnect24-Patcher/v1/UPDATE/update_assistant.bat" --output "update_assistant.bat"
+
+if %alternative_curl%==0 curl -s -S --user-agent "VFF-Downloader-for-Dolphin v%version%" --insecure "https://patcher.rc24.xyz/update/RiiConnect24-Patcher/v1/UPDATE/update_assistant.bat" --output "update_assistant.bat"
+if %alternative_curl%==1 %alternative_curl_path% -s -S --user-agent "VFF-Downloader-for-Dolphin v%version%" --insecure "https://patcher.rc24.xyz/update/RiiConnect24-Patcher/v1/UPDATE/update_assistant.bat" --output "update_assistant.bat"
 	set temperrorlev=%errorlevel%
 	if not %temperrorlev%==0 goto error_updating
-start "" update_assistant.bat -VFF_Downloader_Main_Exec
+if "%run_once%"=="0" start "" update_assistant.bat -VFF_Downloader_Main_Exec
+if "%run_once%"=="1" start "" update_assistant.bat -VFF_Downloader_Main_Exec -run_once
 exit
 :error_updating
 ::echo [%date%] [%time:~0,5%] ERROR: Updating failed with exit code: %temperrorlev%>>"%MainFolder%\log.txt"
@@ -182,7 +173,7 @@ del "%config%\warning.vbs"
 exit
 
 :read_config
-echo --- [%time:~0,8%] Reading configuration ---
+echo --- [%date%] [%time:~0,8%] Reading configuration ---
 if not exist "%config%\forecast_region.txt" goto error_config
 if not exist "%config%\forecast_language.txt" goto error_config
 if not exist "%config%\news_region.txt" goto error_config
@@ -215,30 +206,29 @@ exit
 
 
 :download_files
-echo --- [%time:~0,8%] Cleaning old files [Forecast Channel] ---
+
+call :check_rc24_connection
+	if %errorlevel%==1 goto server_dead
 echo.
+echo --- [%date%] [%time:~0,8%] Cleaning old files [Forecast Channel] ---
 ::Clean forecast channel data
 if exist "%dolphin_installation%\48414645\data\wc24dl.vff" del /q "%dolphin_installation%\48414645\data\wc24dl.vff"
 if exist "%dolphin_installation%\4841464a\data\wc24dl.vff" del /q "%dolphin_installation%\4841464a\data\wc24dl.vff"
 if exist "%dolphin_installation%\48414650\data\wc24dl.vff" del /q "%dolphin_installation%\48414650\data\wc24dl.vff"
-echo.
-echo --- [%time:~0,8%] Cleaning old files [News Channel] ---
-echo.
+echo --- [%date%] [%time:~0,8%] Cleaning old files [News Channel] ---
 ::Clean news channel data
 if exist "%dolphin_installation%\48414745\data\wc24dl.vff" del /q "%dolphin_installation%\48414745\data\wc24dl.vff"
 if exist "%dolphin_installation%\4841474a\data\wc24dl.vff" del /q "%dolphin_installation%\4841474a\data\wc24dl.vff"
 if exist "%dolphin_installation%\48414750\data\wc24dl.vff" del /q "%dolphin_installation%\48414750\data\wc24dl.vff"
-echo.
 
 
-echo --- [%time:~0,8%] Cleaning old files [Everybody Votes Channel] ---
-echo.
+echo --- [%date%] [%time:~0,8%] Cleaning old files [Everybody Votes Channel] ---
 ::Clean EVC data
-if exist "%dolphin_installation%\48414a45\data\wc24dl.vff" del /q "%dolphin_installation%\48414a45\data\wc24dl.vff"
-if exist "%dolphin_installation%\48414a50\data\wc24dl.vff" del /q "%dolphin_installation%\48414a50\data\wc24dl.vff"
+if exist "%dolphin_installation%\..\00010001\48414a45\data\wc24dl.vff" del /q "%dolphin_installation%\..\00010001\48414a45\data\wc24dl.vff"
+if exist "%dolphin_installation%\..\00010001\48414a50\data\wc24dl.vff" del /q "%dolphin_installation%\..\00010001\48414a50\data\wc24dl.vff"
+if exist "%dolphin_installation%\..\00010001\48414a4a\data\wc24dl.vff" del /q "%dolphin_installation%\..\00010001\48414a4a\data\wc24dl.vff"
 echo.
-
-echo --- [%time:~0,8%] Downloading files ---
+echo --- [%date%] [%time:~0,8%] Downloading files ---
 ::Forecast
 :: Sending debug info from now on
 if %alternative_curl%==0 curl -s -S -L --user-agent "VFF-Downloader-for-Dolphin v%version% / %forecast_region% / %forecast_language%" --insecure "http://weather.wii.rc24.xyz/%forecast_language%/%forecast_region%/wc24dl.vff" --output "%dolphin_installation%\wc24dl_forecast.vff"
@@ -262,54 +252,59 @@ if not exist "%dolphin_installation%\48414650\data" md "%dolphin_installation%\4
 if not exist "%dolphin_installation%\48414745\data" md "%dolphin_installation%\48414745\data"
 if not exist "%dolphin_installation%\4841474a\data" md "%dolphin_installation%\4841474a\data"
 if not exist "%dolphin_installation%\48414750\data" md "%dolphin_installation%\48414750\data"
-if not exist "%dolphin_installation%\48414a45\data" md "%dolphin_installation%\48414a45\data"
-if not exist "%dolphin_installation%\48414a50\data" md "%dolphin_installation%\48414a50\data"
+if not exist "%dolphin_installation%\..\00010001\48414a45\data" md "%dolphin_installation%\..\00010001\48414a45\data"
+if not exist "%dolphin_installation%\..\00010001\48414a50\data" md "%dolphin_installation%\..\00010001\48414a50\data"
+if not exist "%dolphin_installation%\..\00010001\48414a4a\data" md "%dolphin_installation%\..\00010001\48414a4a\data"
 
-
-echo --- [%time:~0,8%] Copying files into directory --- 
+echo.
+echo --- [%date%] [%time:~0,8%] Copying files into directory --- 
 copy "%dolphin_installation%\wc24dl_forecast.vff" "%dolphin_installation%\48414645\data\wc24dl.vff"
 set /a temperrorlev=%errorlevel%
-if not %temperrorlev%==0 echo --- [%time:~0,8%] DEBUG: First file copy fail - waiting and trying later ---
+if not %temperrorlev%==0 echo --- [%date%] [%time:~0,8%] DEBUG: 1st file copy fail - waiting and trying later ---
 if not %temperrorlev%==0 goto error_wait
 
 copy "%dolphin_installation%\wc24dl_forecast.vff" "%dolphin_installation%\4841464a\data\wc24dl.vff"
 set /a temperrorlev=%errorlevel%
-if not %temperrorlev%==0 echo --- [%time:~0,8%] DEBUG: Second file copy fail - waiting and trying later ---
+if not %temperrorlev%==0 echo --- [%date%] [%time:~0,8%] DEBUG: 2nd file copy fail - waiting and trying later ---
 if not %temperrorlev%==0 goto error_wait
 
 copy "%dolphin_installation%\wc24dl_forecast.vff" "%dolphin_installation%\48414650\data\wc24dl.vff"
 set /a temperrorlev=%errorlevel%
-if not %temperrorlev%==0 echo --- [%time:~0,8%] DEBUG: Third file copy fail - waiting and trying later ---
+if not %temperrorlev%==0 echo --- [%date%] [%time:~0,8%] DEBUG: 3rd file copy fail - waiting and trying later ---
 if not %temperrorlev%==0 goto error_wait
 
 copy "%dolphin_installation%\wc24dl_news.vff" "%dolphin_installation%\48414745\data\wc24dl.vff"
 set /a temperrorlev=%errorlevel%
-if not %temperrorlev%==0 echo --- [%time:~0,8%] DEBUG: Fourth file copy fail - waiting and trying later ---
+if not %temperrorlev%==0 echo --- [%date%] [%time:~0,8%] DEBUG: 4th file copy fail - waiting and trying later ---
 if not %temperrorlev%==0 goto error_wait
 
 copy "%dolphin_installation%\wc24dl_news.vff" "%dolphin_installation%\4841474a\data\wc24dl.vff"
 set /a temperrorlev=%errorlevel%
-if not %temperrorlev%==0 echo --- [%time:~0,8%] DEBUG: Fifth file copy fail - waiting and trying later ---
+if not %temperrorlev%==0 echo --- [%date%] [%time:~0,8%] DEBUG: 5th file copy fail - waiting and trying later ---
 if not %temperrorlev%==0 goto error_wait
 
 copy "%dolphin_installation%\wc24dl_news.vff" "%dolphin_installation%\48414750\data\wc24dl.vff"
 set /a temperrorlev=%errorlevel%
-if not %temperrorlev%==0 echo --- [%time:~0,8%] DEBUG: Sixth file copy fail - waiting and trying later ---
+if not %temperrorlev%==0 echo --- [%date%] [%time:~0,8%] DEBUG: 6th file copy fail - waiting and trying later ---
 if not %temperrorlev%==0 goto error_wait
 
-if not %evc_country_code%==0 if not %evc_country_code%==1 copy "%dolphin_installation%\wc24dl_evc.vff" "%dolphin_installation%\48414a45\data\wc24dl.vff"
+if not %evc_country_code%==0 if not %evc_country_code%==1 copy "%dolphin_installation%\wc24dl_evc.vff" "%dolphin_installation%\..\00010001\48414a45\data\wc24dl.vff"
 set /a temperrorlev=%errorlevel%
-if not %temperrorlev%==0 echo --- [%time:~0,8%] DEBUG: Seventh file copy fail - waiting and trying later ---
+if not %temperrorlev%==0 echo --- [%date%] [%time:~0,8%] DEBUG: 7th file copy fail - waiting and trying later ---
 if not %temperrorlev%==0 goto error_wait
 
-if not %evc_country_code%==0 if not %evc_country_code%==1 copy "%dolphin_installation%\wc24dl_evc.vff" "%dolphin_installation%\48414a50\data\wc24dl.vff"
+if not %evc_country_code%==0 if not %evc_country_code%==1 copy "%dolphin_installation%\wc24dl_evc.vff" "%dolphin_installation%\..\00010001\48414a50\data\wc24dl.vff"
 set /a temperrorlev=%errorlevel%
-if not %temperrorlev%==0 echo --- [%time:~0,8%] DEBUG: Eighth file copy fail - waiting and trying later ---
+if not %temperrorlev%==0 echo --- [%date%] [%time:~0,8%] DEBUG: 8th file copy fail - waiting and trying later ---
+if not %temperrorlev%==0 goto error_wait
+
+if not %evc_country_code%==0 if not %evc_country_code%==1 copy "%dolphin_installation%\wc24dl_evc.vff" "%dolphin_installation%\..\00010001\48414a4a\data\wc24dl.vff"
+set /a temperrorlev=%errorlevel%
+if not %temperrorlev%==0 echo --- [%date%] [%time:~0,8%] DEBUG: 9th file copy fail - waiting and trying later ---
 if not %temperrorlev%==0 goto error_wait
 
 
-
-echo --- [%time:~0,8%] Delete temporary files ---
+echo --- [%date%] [%time:~0,8%] Delete temporary files ---
 del /q "%dolphin_installation%\wc24dl_news.vff"
 del /q "%dolphin_installation%\wc24dl_forecast.vff"
 if not %evc_country_code%==0 if not %evc_country_code%==1 del /q "%dolphin_installation%\wc24dl_evc.vff"
@@ -335,19 +330,19 @@ goto count_time
 if not "%last_hour_download%"=="%time:~0,2%" set /a already_checked_this_hour=0
 if %already_checked_this_hour%==0 if /i "%time:~3,2%" GEQ "10" goto download_files
 
-echo --- [%time:~0,8%] Waiting 600 seconds (10 minutes) ---
+echo --- [%date%] [%time:~0,8%] Waiting 600 seconds (10 minutes) ---
 call "%windir%\system32\timeout.exe" 600 /nobreak >NUL
 
-echo --- [%time:~0,8%] Checking for update ---
+echo --- [%date%] [%time:~0,8%] Checking for update ---
 ::Check for update
-if %alternative_curl%==0 call curl -s -S --insecure "%FilesHostedOn%/UPDATE/version_vff_downloader.txt" --output "%TempStorage%\version.txt"
-if %alternative_curl%==1 call %alternative_curl_path% -s -S --insecure "%FilesHostedOn%/UPDATE/version_vff_downloader.txt" --output "%TempStorage%\version.txt"
+if %alternative_curl%==0 call curl -s -S --user-agent "VFF-Downloader-for-Dolphin v%version%" --insecure "%FilesHostedOn%/UPDATE/version_vff_downloader.txt" --output "%TempStorage%\version.txt"
+if %alternative_curl%==1 call %alternative_curl_path% -s -S --user-agent "VFF-Downloader-for-Dolphin v%version%" --insecure "%FilesHostedOn%/UPDATE/version_vff_downloader.txt" --output "%TempStorage%\version.txt"
 if exist "%TempStorage%\version.txt" set /p updateversion=<"%TempStorage%\version.txt"
 if not %updateversion%==%version% goto run_update
-echo --- [%time:~0,8%] Done checking for update ---
+echo --- [%date%] [%time:~0,8%] Done checking for update ---
 
 goto count_time
 :error_wait
-echo --- [%time:~0,8%] Waiting 180 seconds (3 minutes) ---
+echo --- [%date%] [%time:~0,8%] Waiting 180 seconds (3 minutes) ---
 call "%windir%\system32\timeout.exe" 180 /nobreak >NUL
 goto download_files
