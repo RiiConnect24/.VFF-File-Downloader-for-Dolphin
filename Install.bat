@@ -5,18 +5,18 @@ echo 	Starting up...
 echo	The program is starting...
 :: ===========================================================================
 :: .VFF File Downloader for Dolphin
-set version=1.0.8
+set version=1.0.9
 :: AUTHORS: KcrPL
 :: ***************************************************************************
-:: Copyright (c) 2020 KcrPL, RiiConnect24 and it's (Lead) Developers
+:: Copyright (c) 2020-2022 KcrPL, RiiConnect24 and it's (Lead) Developers
 :: ===========================================================================
 
 if exist temp.bat del /q temp.bat
 :script_start
 echo 	.. Setting up the variables
 :: Window size (Lines, columns)
-set mode=128,40
-mode %mode%
+set mode=128,37
+%mode_path% %mode%
 set s=NUL
 :: Variables
 set /a detected=0
@@ -25,6 +25,11 @@ set /a temp=0
 set /a evc_country_code=0
 set user_name=%userprofile:~9%
 
+:: Issue workarounds
+set mode_path=C:\Windows\system32\mode.com
+set findstr_path=C:\Windows\system32\findstr.exe
+set timeout_path=C:\Windows\system32\timeout.exe
+set reg_path=C:\Windows\system32\reg.exe
 set /a rc24patcher=0
 if "%1"=="-RC24Patcher_assisted" set /a rc24patcher=1
 
@@ -33,8 +38,8 @@ if "%1"=="-RC24Patcher_assisted" set /a rc24patcher=1
 :: Window Title
 title .VFF File Downloader for Dolphin v%version% Created by @KcrPL
 
-set last_build=2020/04/27
-set at=00:52
+set last_build=2022/05/28
+set at=11:47 CET
 :: ### Auto Update ###	
 :: 1=Enable 0=Disable
 :: Update_Activate - If disabled, patcher will not even check for updates, default=1
@@ -203,7 +208,7 @@ exit
 
 :begin_main
 cls
-mode %mode%
+%mode_path% %mode%
 echo %header%
 echo              `..````
 echo              yNNNNNNNNMNNmmmmdddhhhyyyysssooo+++/:--.`
@@ -609,7 +614,7 @@ cls
 echo %header%
 echo -----------------------------------------------------------------------------------------------------------------------------
 echo.
-echo Welcome to the installation process of RiiConnect24 VFF Downloader for Dolphin!
+echo Welcome to the installation process of RiiConnect24 VFF Downloader for Dolphin^^!
 echo This program will allow you to use Forecast/News Channel on your Dolphin Emulator without the NEWS00006 error.
 echo.
 echo We're gonna assume your Dolphin Emulator is using the default NAND location.
@@ -626,11 +631,11 @@ goto 1
 
 set /a using_default_location=1
 
-FOR /F "tokens=2* skip=2" %%a in ('reg query "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" /v "Personal"') do set Documents_Folder=%%b
+FOR /F "tokens=2* skip=2" %%a in ('%reg_path% query "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" /v "Personal"') do set Documents_Folder=%%b
 
 set fix_detect=0
-echo %Documents_Folder% | findstr "%USERPROFILE%" && set /a fix_detect=1
-echo %Documents_Folder% | findstr "OneDrive" && set /a fix_detect=0
+echo %Documents_Folder% | %findstr_path% "%USERPROFILE%" && set /a fix_detect=1
+echo %Documents_Folder% | %findstr_path% "OneDrive" && set /a fix_detect=0
 
 ::if %fix_detect%==1 if exist "%Documents_Folder%\Dolphin Emulator\Wii\title\00010002" set detected=1
 ::if %fix_detect%==0 if exist "%userprofile%\Documents\Dolphin Emulator\Wii\title\00010002" set detected=1
@@ -685,7 +690,7 @@ echo %dolphin_location%> "%config%\path_to_install.txt"
 set /a using_default_location=0
 goto 1_detect_1
 :1_detect_1
-mode 128,45
+%mode_path% 128,45
 cls
 echo %header%
 echo -----------------------------------------------------------------------------------------------------------------------------
@@ -814,7 +819,7 @@ set incorrect_region=1
 goto 1_detect_1
 )
 
-mode %mode%
+%mode_path% %mode%
 goto 2_detect_languages
 :2_detect_languages
 cls
@@ -834,7 +839,7 @@ for /L %%a in (0,1,6) do set region_available_%%a=0
 ::Use a loop to, well, loop through the numbers 0 to 6
 for /L %%a in (0,1,6) do (
 ::Check if the region is available
-curl -I --insecure -s -S  http://weather.wii.rc24.xyz/%%a/%region%/wc24dl.vff | findstr "HTTP/1.1" | findstr "200 OK" >NUL
+curl -I --insecure -s -S  http://weather.wii.rc24.xyz/%%a/%region%/wc24dl.vff | %findstr_path% "HTTP/1.1" | %findstr_path% "200 OK" >NUL
 ::And if it is (findstr returns errorlevel 0 on success), set the var to 1
 if !errorlevel!==0 set region_available_%%a=1
 )
