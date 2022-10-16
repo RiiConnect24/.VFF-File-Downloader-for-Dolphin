@@ -421,7 +421,7 @@ forecast_eur() {
 	printf "        \033[1m--- Forecast Channel Configuration ---\033[0m\n\n\
 	The region that you have chosen is: $reg_name\n\n\
 	1. English\n\
-	2.German\n\
+	2. German\n\
 	3. French\n\
 	4. Spanish\n\
 	5. Italian\n\
